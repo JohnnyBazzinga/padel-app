@@ -2,8 +2,8 @@ class AppConfig {
   static const String appName = 'Padel App';
 
   // API
-  static const String apiBaseUrl = 'http://localhost:3000/api';
-  static const String wsBaseUrl = 'http://localhost:3000';
+  static const String apiBaseUrl = 'https://padel-backend-production-01b9.up.railway.app/api';
+  static const String wsBaseUrl = 'https://padel-backend-production-01b9.up.railway.app';
 
   // Timeouts
   static const int connectTimeout = 30000;
