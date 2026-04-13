@@ -94,7 +94,8 @@ class TournamentsProvider extends ChangeNotifier {
       if (status != null) params['status'] = status;
 
       final response = await _api.get('/tournaments', queryParameters: params);
-      _tournaments = (response.data['data'] as List)
+      final responseData = response.data['data'];
+      _tournaments = (responseData['data'] as List)
           .map((t) => Tournament.fromJson(t))
           .toList();
     } catch (e) {
