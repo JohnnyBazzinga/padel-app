@@ -25,14 +25,23 @@ class Conversation {
   String get otherUserId => otherUser?['id'] ?? '';
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
+    int parseInt(dynamic value, int fallback) {
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? fallback;
+      return fallback;
+    }
+
+    DateTime? parseDate(dynamic value) {
+      if (value == null) return null;
+      return DateTime.tryParse(value.toString());
+    }
+
     return Conversation(
-      id: json['id'],
+      id: json['id']?.toString() ?? '',
       otherUser: json['otherUser'],
       lastMessage: json['lastMessage'],
-      lastMessageAt: json['lastMessageAt'] != null
-          ? DateTime.parse(json['lastMessageAt'])
-          : null,
-      unreadCount: json['unreadCount'] ?? 0,
+      lastMessageAt: parseDate(json['lastMessageAt']),
+      unreadCount: parseInt(json['unreadCount'], 0),
     );
   }
 }
@@ -57,13 +66,18 @@ class ChatMessage {
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic value) {
+      return DateTime.tryParse(value.toString()) ??
+          DateTime.fromMillisecondsSinceEpoch(0);
+    }
+
     return ChatMessage(
-      id: json['id'],
-      conversationId: json['conversationId'],
-      senderId: json['senderId'],
-      content: json['content'],
-      status: json['status'] ?? 'SENT',
-      createdAt: DateTime.parse(json['createdAt']),
+      id: json['id']?.toString() ?? '',
+      conversationId: json['conversationId']?.toString() ?? '',
+      senderId: json['senderId']?.toString() ?? '',
+      content: json['content']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'SENT',
+      createdAt: parseDate(json['createdAt']),
       sender: json['sender'],
     );
   }

@@ -21,14 +21,28 @@ class AppNotification {
   });
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
+    bool parseBool(dynamic value, bool fallback) {
+      if (value is bool) return value;
+      if (value is String) {
+        return switch (value.toLowerCase().trim()) {
+          'true' || '1' || 'yes' || 'y' => true,
+          'false' || '0' || 'no' || 'n' => false,
+          _ => fallback,
+        };
+      }
+      if (value is num) return value != 0;
+      return fallback;
+    }
+
     return AppNotification(
-      id: json['id'],
-      type: json['type'],
-      title: json['title'],
-      message: json['message'],
+      id: json['id']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      message: json['message']?.toString() ?? '',
       data: json['data'],
-      isRead: json['isRead'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
+      isRead: parseBool(json['isRead'], false),
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 }
@@ -56,7 +70,8 @@ class NotificationsProvider extends ChangeNotifier {
       _notifications = (response.data['data']['data'] as List)
           .map((n) => AppNotification.fromJson(n))
           .toList();
-      _unreadCount = response.data['data']['meta']['unreadCount'] ?? 0;
+      _unreadCount =
+          _extractUnreadCount(response.data['data']['meta']?['unreadCount']);
     } catch (e) {
       _error = 'Erro ao carregar notificações';
     }
@@ -68,11 +83,17 @@ class NotificationsProvider extends ChangeNotifier {
   Future<void> fetchUnreadCount() async {
     try {
       final response = await _api.get('/notifications/unread-count');
-      _unreadCount = response.data['data']['count'] ?? 0;
+      _unreadCount = _extractUnreadCount(response.data['data']?['count']);
       notifyListeners();
     } catch (e) {
       // Ignore
     }
+  }
+
+  int _extractUnreadCount(dynamic value) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 
   Future<void> markAsRead(String id) async {
