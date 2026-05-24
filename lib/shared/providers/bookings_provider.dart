@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+
 import '../../core/api/api_client.dart';
-import 'auth_provider.dart';
 
 class Booking {
   final String id;
@@ -91,61 +91,10 @@ class BookingsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Mock data for demo mode
-  static List<Booking> get _mockBookings {
-    final now = DateTime.now();
-    return [
-      Booking(
-        id: 'b1',
-        courtId: 'c1',
-        userId: 'demo-user-001',
-        date: now.add(const Duration(days: 2)),
-        startTime: '18:00',
-        endTime: '19:30',
-        totalPrice: 2000,
-        status: 'CONFIRMED',
-        court: {'name': 'Court 1', 'club': {'name': 'Padel Lisboa Centro'}},
-      ),
-      Booking(
-        id: 'b2',
-        courtId: 'c4',
-        userId: 'demo-user-001',
-        date: now.add(const Duration(days: 5)),
-        startTime: '10:00',
-        endTime: '11:30',
-        totalPrice: 3000,
-        status: 'CONFIRMED',
-        court: {'name': 'Beach Court 1', 'club': {'name': 'Padel Cascais Beach'}},
-      ),
-    ];
-  }
-
-  static final List<TimeSlot> _mockAvailability = [
-    TimeSlot(startTime: '08:00', endTime: '09:30', available: true, price: 1500, isPeak: false),
-    TimeSlot(startTime: '09:30', endTime: '11:00', available: true, price: 1500, isPeak: false),
-    TimeSlot(startTime: '11:00', endTime: '12:30', available: false, price: 1800, isPeak: false),
-    TimeSlot(startTime: '12:30', endTime: '14:00', available: true, price: 1800, isPeak: false),
-    TimeSlot(startTime: '14:00', endTime: '15:30', available: true, price: 1800, isPeak: false),
-    TimeSlot(startTime: '15:30', endTime: '17:00', available: true, price: 2000, isPeak: false),
-    TimeSlot(startTime: '17:00', endTime: '18:30', available: false, price: 2500, isPeak: true),
-    TimeSlot(startTime: '18:30', endTime: '20:00', available: true, price: 2500, isPeak: true),
-    TimeSlot(startTime: '20:00', endTime: '21:30', available: true, price: 2500, isPeak: true),
-    TimeSlot(startTime: '21:30', endTime: '23:00', available: true, price: 2000, isPeak: false),
-  ];
-
   Future<void> fetchMyBookings({bool upcoming = true}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
-    // Demo mode: use mock data
-    if (kDemoMode) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      _myBookings = _mockBookings;
-      _isLoading = false;
-      notifyListeners();
-      return;
-    }
 
     try {
       final response = await _api.get('/bookings/my', queryParameters: {
@@ -166,15 +115,6 @@ class BookingsProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
-    // Demo mode: use mock data
-    if (kDemoMode) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      _availability = _mockAvailability;
-      _isLoading = false;
-      notifyListeners();
-      return;
-    }
 
     try {
       final response = await _api.get('/courts/$courtId/availability', queryParameters: {

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../models/user_model.dart';
 import '../../core/api/api_client.dart';
 import '../../core/services/storage_service.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
-
-// Set to true to bypass authentication and use mock data
-const bool kDemoMode = false;
 
 class AuthProvider extends ChangeNotifier {
   final ApiClient _api = ApiClient();
@@ -29,27 +27,6 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _checkAuth() async {
     _status = AuthStatus.loading;
     notifyListeners();
-
-    // Demo mode: skip authentication and use mock user
-    if (kDemoMode) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      _user = User(
-        id: 'demo-user-001',
-        email: 'demo@padel.app',
-        firstName: 'João',
-        lastName: 'Demo',
-        city: 'Lisboa',
-        country: 'Portugal',
-        skillLevel: 'INTERMEDIATE',
-        matchesPlayed: 42,
-        matchesWon: 28,
-        totalPoints: 1250,
-        roles: ['user'],
-      );
-      _status = AuthStatus.authenticated;
-      notifyListeners();
-      return;
-    }
 
     try {
       final hasTokens = await _storage.hasTokens();
