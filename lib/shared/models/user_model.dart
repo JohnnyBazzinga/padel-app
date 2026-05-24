@@ -52,6 +52,12 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     final rawRoles = json['roles'];
     final roleList = <String>[];
+    int parseInt(dynamic value, int fallback) {
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? fallback;
+      return fallback;
+    }
+
     if (rawRoles is List) {
       for (final role in rawRoles) {
         if (role is String) {
@@ -63,22 +69,22 @@ class User {
     }
 
     return User(
-      id: json['id'],
-      email: json['email'],
-      firstName: json['firstName'],
-      lastName: json['lastName'],
-      phone: json['phone'],
-      avatarUrl: json['avatarUrl'],
-      bio: json['bio'],
-      city: json['city'],
-      country: json['country'],
-      skillLevel: json['skillLevel'] ?? 'BEGINNER',
-      preferredHand: json['preferredHand'],
-      preferredSide: json['preferredSide'],
-      yearsPlaying: json['yearsPlaying'],
-      matchesPlayed: json['matchesPlayed'] ?? 0,
-      matchesWon: json['matchesWon'] ?? 0,
-      totalPoints: json['totalPoints'] ?? 0,
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      firstName: json['firstName']?.toString(),
+      lastName: json['lastName']?.toString(),
+      phone: json['phone']?.toString(),
+      avatarUrl: json['avatarUrl']?.toString(),
+      bio: json['bio']?.toString(),
+      city: json['city']?.toString(),
+      country: json['country']?.toString(),
+      skillLevel: json['skillLevel']?.toString() ?? 'BEGINNER',
+      preferredHand: json['preferredHand']?.toString(),
+      preferredSide: json['preferredSide']?.toString(),
+      yearsPlaying: parseInt(json['yearsPlaying'], 0),
+      matchesPlayed: parseInt(json['matchesPlayed'], 0),
+      matchesWon: parseInt(json['matchesWon'], 0),
+      totalPoints: parseInt(json['totalPoints'], 0),
       roles: roleList,
     );
   }

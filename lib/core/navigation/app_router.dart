@@ -40,29 +40,19 @@ class AppRouter {
         final isAdminArea = state.matchedLocation.startsWith('/admin');
         final isTournamentCreatorRoute = state.matchedLocation == '/tournaments/create';
 
-        if (isLoading) return null;
-
-        if (!isLoggedIn && !isAuthRoute && !isInviteRoute) {
-          return '/login';
-        }
-
-        if (isLoggedIn && isAuthRoute && state.matchedLocation != '/') {
-          return '/home';
-        }
-
-        if (isAdminArea && !auth.canAccessAdminArea) {
-          return '/home';
-        }
-
-        if (isCreateMatchRoute && !auth.canCreateMatches) {
-          return '/matches';
-        }
-
-        if (isTournamentCreatorRoute && !auth.canCreateTournaments) {
-          return '/tournaments';
-        }
-
-        return null;
+        return AppRouteGuard.resolve(
+          isLoading: isLoading,
+          isLoggedIn: isLoggedIn,
+          isAuthRoute: isAuthRoute,
+          isInviteRoute: isInviteRoute,
+          location: state.matchedLocation,
+          isAdminArea: isAdminArea,
+          isCreateMatchRoute: isCreateMatchRoute,
+          isTournamentCreatorRoute: isTournamentCreatorRoute,
+          canAccessAdminArea: auth.canAccessAdminArea,
+          canCreateMatches: auth.canCreateMatches,
+          canCreateTournaments: auth.canCreateTournaments,
+        );
       },
       routes: [
         GoRoute(
@@ -174,5 +164,45 @@ class AppRouter {
         ),
       ],
     );
+  }
+}
+
+class AppRouteGuard {
+  static String? resolve({
+    required bool isLoading,
+    required bool isLoggedIn,
+    required bool isAuthRoute,
+    required bool isInviteRoute,
+    required String location,
+    required bool isAdminArea,
+    required bool isCreateMatchRoute,
+    required bool isTournamentCreatorRoute,
+    required bool canAccessAdminArea,
+    required bool canCreateMatches,
+    required bool canCreateTournaments,
+  }) {
+    if (isLoading) return null;
+
+    if (!isLoggedIn && !isAuthRoute && !isInviteRoute) {
+      return '/login';
+    }
+
+    if (isLoggedIn && isAuthRoute && location != '/') {
+      return '/home';
+    }
+
+    if (isAdminArea && !canAccessAdminArea) {
+      return '/home';
+    }
+
+    if (isCreateMatchRoute && !canCreateMatches) {
+      return '/matches';
+    }
+
+    if (isTournamentCreatorRoute && !canCreateTournaments) {
+      return '/tournaments';
+    }
+
+    return null;
   }
 }
