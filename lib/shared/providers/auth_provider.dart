@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/user_model.dart';
+import '../../core/access/app_roles.dart';
 import '../../core/api/api_client.dart';
 import '../../core/services/storage_service.dart';
 
@@ -19,6 +20,18 @@ class AuthProvider extends ChangeNotifier {
   String? get error => _error;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
   bool get isLoading => _status == AuthStatus.loading;
+  List<String> get roles => _user?.roles ?? const [];
+  Set<String> get normalizedRoles => AppRoles.normalizeRoles(roles);
+
+  bool get isPlatformAdmin => AppRoles.isAdmin(roles);
+  bool get isOrganizer => AppRoles.isOrganizer(roles);
+  bool get canCreateTournaments => AppRoles.canCreateTournaments(roles);
+  bool get canInviteOrganizer => AppRoles.canInviteOrganizer(roles);
+  bool get canCreateMatches => AppRoles.canCreateMatches(roles);
+
+  bool hasRole(String role) {
+    return AppRoles.hasRole(roles, role);
+  }
 
   AuthProvider() {
     _checkAuth();

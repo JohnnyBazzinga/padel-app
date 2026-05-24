@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 
 import '../../../core/theme/theme.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/providers/friends_provider.dart';
+import '../../../shared/providers/notifications_provider.dart';
 import '../../../shared/widgets/widgets.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -13,6 +15,8 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final friends = context.watch<FriendsProvider>();
+    final notifications = context.watch<NotificationsProvider>();
     final user = auth.user;
 
     if (user == null) {
@@ -131,10 +135,16 @@ class ProfileScreen extends StatelessWidget {
                           label: 'Minhas Reservas',
                           onTap: () => context.push('/my-bookings'),
                         ),
+                        if (auth.canInviteOrganizer)
+                          _MenuItem(
+                            icon: Icons.admin_panel_settings_rounded,
+                            label: 'Convidar organizador',
+                            onTap: () => context.push('/admin/invite-organizer'),
+                          ),
                         _MenuItem(
                           icon: Icons.people_rounded,
                           label: 'Amigos',
-                          badge: '3',
+                          badge: friends.pendingCount > 0 ? friends.pendingCount.toString() : null,
                           onTap: () => context.push('/friends'),
                         ),
                         _MenuItem(
@@ -280,6 +290,31 @@ class _ProfileHeader extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ],
+
+            if (user.roles.isNotEmpty) ...[
+              AppSpacing.verticalMd,
+              Wrap(
+                spacing: 8,
+                alignment: WrapAlignment.center,
+                children: user.roles
+                    .map(
+                      (role) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.12),
+                          borderRadius: AppDecorations.borderRadiusFull,
+                        ),
+                        child: Text(
+                          role,
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ],
           ],

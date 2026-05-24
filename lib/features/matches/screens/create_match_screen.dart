@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/matches_provider.dart';
 
 class CreateMatchScreen extends StatefulWidget {
@@ -31,6 +32,30 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<MatchesProvider>();
+    final auth = context.watch<AuthProvider>();
+    if (!auth.isAuthenticated) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(title: const Text('Criar Jogo')),
+        body: const Center(child: Text('Inicia sessão para criar jogos')),
+      );
+    }
+
+    if (!auth.canCreateMatches) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(title: const Text('Criar Jogo')),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'Sem permissões para criar jogos',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,

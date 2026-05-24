@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/theme/theme.dart';
 import '../../../shared/providers/matches_provider.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/widgets.dart';
 
 class MatchesScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<MatchesProvider>();
+    final auth = context.watch<AuthProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -91,7 +93,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
         ),
       ),
       floatingActionButton: _CreateMatchFAB(
-        onPressed: () => context.push('/create-match'),
+        onPressed: auth.canCreateMatches ? () => context.push('/create-match') : null,
       ),
     );
   }
@@ -108,12 +110,14 @@ class _MatchesScreenState extends State<MatchesScreen> {
   }
 
   Widget _buildEmptyState() {
+    final auth = context.watch<AuthProvider>();
+
     return EmptyState(
       icon: Icons.sports_tennis_rounded,
       title: 'Sem jogos disponíveis',
       message: 'Não encontramos jogos para os filtros selecionados. Cria o teu próprio jogo!',
-      actionLabel: 'Criar Jogo',
-      onAction: () => context.push('/create-match'),
+      actionLabel: auth.canCreateMatches ? 'Criar Jogo' : null,
+      onAction: auth.canCreateMatches ? () => context.push('/create-match') : null,
     );
   }
 
@@ -448,7 +452,7 @@ class _LevelChip extends StatelessWidget {
 }
 
 class _CreateMatchFAB extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const _CreateMatchFAB({required this.onPressed});
 

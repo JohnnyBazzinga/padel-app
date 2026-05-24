@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../shared/providers/auth_provider.dart';
@@ -16,12 +15,14 @@ import '../../features/matches/screens/match_detail_screen.dart';
 import '../../features/matches/screens/create_match_screen.dart';
 import '../../features/tournaments/screens/tournaments_screen.dart';
 import '../../features/tournaments/screens/tournament_detail_screen.dart';
+import '../../features/tournaments/screens/create_tournament_screen.dart';
 import '../../features/rankings/screens/rankings_screen.dart';
 import '../../features/chat/screens/conversations_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
 import '../../features/friends/screens/friends_screen.dart';
+import '../../features/admin/screens/admin_invites_screen.dart';
 
 class AppRouter {
   static GoRouter router(AuthProvider auth) {
@@ -34,15 +35,31 @@ class AppRouter {
         final isAuthRoute = state.matchedLocation == '/login' ||
             state.matchedLocation == '/register' ||
             state.matchedLocation == '/';
+        final isInviteRoute = state.matchedLocation == '/roles/invitations';
+        final isCreateMatchRoute = state.matchedLocation == '/create-match';
+        final isAdminArea = state.matchedLocation.startsWith('/admin');
+        final isTournamentCreatorRoute = state.matchedLocation == '/tournaments/create';
 
         if (isLoading) return null;
 
-        if (!isLoggedIn && !isAuthRoute) {
+        if (!isLoggedIn && !isAuthRoute && !isInviteRoute) {
           return '/login';
         }
 
         if (isLoggedIn && isAuthRoute && state.matchedLocation != '/') {
           return '/home';
+        }
+
+        if (isAdminArea && !auth.isPlatformAdmin) {
+          return '/home';
+        }
+
+        if (isCreateMatchRoute && !auth.canCreateMatches) {
+          return '/matches';
+        }
+
+        if (isTournamentCreatorRoute && !auth.canCreateTournaments) {
+          return '/tournaments';
         }
 
         return null;
@@ -120,6 +137,21 @@ class AppRouter {
           path: '/tournaments/:id',
           builder: (context, state) => TournamentDetailScreen(
             tournamentId: state.pathParameters['id']!,
+          ),
+        ),
+        GoRoute(
+          path: '/tournaments/create',
+          builder: (context, state) => const CreateTournamentScreen(),
+        ),
+        GoRoute(
+          path: '/admin/invite-organizer',
+          builder: (context, state) => const AdminInvitesScreen(),
+        ),
+        GoRoute(
+          path: '/roles/invitations',
+          builder: (context, state) => AdminInvitesScreen(
+            invitationToken: state.uri.queryParameters['token'],
+            note: state.uri.queryParameters['note'],
           ),
         ),
         GoRoute(

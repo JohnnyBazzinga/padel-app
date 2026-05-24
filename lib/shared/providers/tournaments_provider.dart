@@ -144,4 +144,53 @@ class TournamentsProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> createTournament({
+    required String name,
+    required String clubId,
+    required String startDate,
+    required String endDate,
+    required String registrationDeadline,
+    String format = 'SINGLE_ELIMINATION',
+    required int maxTeams,
+    required String minLevel,
+    required String maxLevel,
+    required int entryFee,
+    String? description,
+    int? prizePool,
+    String? imageUrl,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final payload = {
+        'name': name,
+        'clubId': clubId,
+        'startDate': startDate,
+        'endDate': endDate,
+        'registrationDeadline': registrationDeadline,
+        'format': format,
+        'maxTeams': maxTeams,
+        'minLevel': minLevel,
+        'maxLevel': maxLevel,
+        'entryFee': entryFee,
+        if (description != null) 'description': description,
+        if (prizePool != null) 'prizePool': prizePool,
+        if (imageUrl != null) 'imageUrl': imageUrl,
+      };
+
+      await _api.post('/tournaments', data: payload);
+      await fetchTournaments();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Erro ao criar torneio';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

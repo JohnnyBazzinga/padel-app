@@ -50,6 +50,18 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
+    final rawRoles = json['roles'];
+    final roleList = <String>[];
+    if (rawRoles is List) {
+      for (final role in rawRoles) {
+        if (role is String) {
+          roleList.add(role);
+        } else if (role is Map && role['role'] is String) {
+          roleList.add(role['role']);
+        }
+      }
+    }
+
     return User(
       id: json['id'],
       email: json['email'],
@@ -67,9 +79,7 @@ class User {
       matchesPlayed: json['matchesPlayed'] ?? 0,
       matchesWon: json['matchesWon'] ?? 0,
       totalPoints: json['totalPoints'] ?? 0,
-      roles: json['roles'] != null
-          ? List<String>.from(json['roles'])
-          : [],
+      roles: roleList,
     );
   }
 

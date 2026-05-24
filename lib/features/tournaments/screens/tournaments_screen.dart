@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/tournaments_provider.dart';
 
 class TournamentsScreen extends StatefulWidget {
@@ -23,10 +24,18 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TournamentsProvider>();
+    final auth = context.watch<AuthProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Torneios')),
+      floatingActionButton: auth.canCreateTournaments
+          ? FloatingActionButton.extended(
+              onPressed: () => context.push('/tournaments/create'),
+              icon: const Icon(Icons.add),
+              label: const Text('Criar torneio'),
+            )
+          : null,
       body: RefreshIndicator(
         onRefresh: () => provider.fetchTournaments(),
         child: provider.isLoading

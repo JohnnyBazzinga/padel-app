@@ -14,6 +14,7 @@ import 'shared/providers/rankings_provider.dart';
 import 'shared/providers/chat_provider.dart';
 import 'shared/providers/friends_provider.dart';
 import 'shared/providers/notifications_provider.dart';
+import 'shared/providers/roles_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +48,7 @@ class PadelApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => FriendsProvider()),
         ChangeNotifierProvider(create: (_) => NotificationsProvider()),
+        ChangeNotifierProvider(create: (_) => RolesProvider()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, auth, _) {

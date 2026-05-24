@@ -41,7 +41,11 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (success && mounted) {
-      context.go('/home');
+      final next = GoRouterState.of(context).uri.queryParameters['next'];
+      final target = (next != null && next.isNotEmpty)
+          ? Uri.decodeComponent(next)
+          : '/home';
+      context.go(target);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -71,10 +75,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
 
                 // Logo
-                _Logo()
-                    .animate()
-                    .fadeIn(duration: 600.ms)
-                    .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1)),
+                _Logo().animate().fadeIn(duration: 600.ms).scale(
+                    begin: const Offset(0.8, 0.8), end: const Offset(1, 1)),
 
                 const SizedBox(height: 40),
 
@@ -96,9 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: AppColors.textSecondary,
                   ),
                   textAlign: TextAlign.center,
-                )
-                    .animate()
-                    .fadeIn(duration: 400.ms, delay: 300.ms),
+                ).animate().fadeIn(duration: 400.ms, delay: 300.ms),
 
                 const SizedBox(height: 48),
 
@@ -165,9 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                )
-                    .animate()
-                    .fadeIn(duration: 400.ms, delay: 600.ms),
+                ).animate().fadeIn(duration: 400.ms, delay: 600.ms),
 
                 const SizedBox(height: 32),
 
@@ -204,9 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: () {},
                     ),
                   ],
-                )
-                    .animate()
-                    .fadeIn(duration: 400.ms, delay: 900.ms),
+                ).animate().fadeIn(duration: 400.ms, delay: 900.ms),
 
                 const SizedBox(height: 48),
 
@@ -230,9 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
-                )
-                    .animate()
-                    .fadeIn(duration: 400.ms, delay: 1000.ms),
+                ).animate().fadeIn(duration: 400.ms, delay: 1000.ms),
               ],
             ),
           ),

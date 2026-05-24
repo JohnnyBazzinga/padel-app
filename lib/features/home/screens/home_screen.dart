@@ -8,6 +8,7 @@ import '../../../core/theme/theme.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/bookings_provider.dart';
 import '../../../shared/providers/matches_provider.dart';
+import '../../../shared/providers/notifications_provider.dart';
 import '../../../shared/widgets/widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _loadData() {
     context.read<BookingsProvider>().fetchMyBookings();
     context.read<MatchesProvider>().fetchMyMatches();
+    context.read<NotificationsProvider>().fetchUnreadCount();
   }
 
   @override
@@ -34,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final auth = context.watch<AuthProvider>();
     final bookings = context.watch<BookingsProvider>();
     final matches = context.watch<MatchesProvider>();
+    final notifications = context.watch<NotificationsProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -50,12 +53,18 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                _Header(userName: auth.user?.firstName ?? 'Jogador'),
+                _Header(
+                  userName: auth.user?.firstName ?? 'Jogador',
+                  unreadNotifications: notifications.unreadCount,
+                ),
 
                 AppSpacing.verticalXl,
 
-                // Quick Actions
-                _QuickActionsSection(),
+              // Quick Actions
+              _QuickActionsSection(
+                canInviteOrganizer: auth.canInviteOrganizer,
+                canCreateMatch: auth.canCreateMatches,
+              ),
 
                 AppSpacing.verticalXxl,
 
@@ -84,7 +93,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 _MatchesSection(
                   matches: matches,
                   onSeeAll: () => context.push('/matches'),
-                  onCreateMatch: () => context.push('/create-match'),
+                  onCreateMatch: auth.canCreateMatches
+                      ? () => context.push('/create-match')
+                      : null,
                 ),
 
                 AppSpacing.verticalXxl,
@@ -109,8 +120,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _Header extends StatelessWidget {
   final String userName;
+  final int unreadNotifications;
 
-  const _Header({required this.userName});
+  const _Header({required this.userName, required this.unreadNotifications});
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +158,7 @@ class _Header extends StatelessWidget {
               AppIconButton(
                 icon: Icons.notifications_outlined,
                 variant: AppIconButtonVariant.glass,
-                badge: '3',
+                badge: unreadNotifications > 0 ? unreadNotifications.toString() : null,
                 onPressed: () {},
               ),
             ],
@@ -161,6 +173,13 @@ class _Header extends StatelessWidget {
 }
 
 class _QuickActionsSection extends StatelessWidget {
+  final bool canInviteOrganizer;
+  final bool canCreateMatch;
+
+  const _QuickActionsSection({
+    required this.canInviteOrganizer,
+    required this.canCreateMatch,
+  });
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -182,8 +201,17 @@ class _QuickActionsSection extends StatelessWidget {
             label: 'Criar Jogo',
             subtitle: 'Novo',
             accentColor: AppColors.accent,
-            onTap: () => context.push('/create-match'),
+            onTap: canCreateMatch ? () => context.push('/create-match') : null,
           ),
+          AppSpacing.horizontalMd,
+          if (canInviteOrganizer)
+            QuickActionCard(
+              icon: Icons.admin_panel_settings_rounded,
+              label: 'Admin',
+              subtitle: 'Convidar',
+              accentColor: AppColors.error,
+              onTap: () => context.push('/admin/invite-organizer'),
+            ),
           AppSpacing.horizontalMd,
           QuickActionCard(
             icon: Icons.emoji_events_rounded,
@@ -402,7 +430,7 @@ class _BookingsSection extends StatelessWidget {
 class _MatchesSection extends StatelessWidget {
   final MatchesProvider matches;
   final VoidCallback onSeeAll;
-  final VoidCallback onCreateMatch;
+  final VoidCallback? onCreateMatch;
 
   const _MatchesSection({
     required this.matches,
@@ -439,8 +467,8 @@ class _MatchesSection extends StatelessWidget {
             child: _EmptyCard(
               icon: Icons.sports_tennis_outlined,
               message: 'Sem jogos agendados',
-              actionLabel: 'Criar jogo',
-              onAction: onCreateMatch,
+              actionLabel: onCreateMatch == null ? 'Ver jogos disponíveis' : 'Criar jogo',
+              onAction: onCreateMatch ?? (() => context.push('/matches')),
             ),
           )
         else
