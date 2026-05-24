@@ -50,7 +50,7 @@ class AppRouter {
           return '/home';
         }
 
-        if (isAdminArea && !auth.isPlatformAdmin) {
+        if (isAdminArea && !auth.canAccessAdminArea) {
           return '/home';
         }
 

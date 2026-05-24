@@ -29,6 +29,12 @@ void main() {
     expect(AppRoles.isOrganizer(roles), isTrue);
   });
 
+  test('admin can access admin area but does not need platform_admin', () {
+    final roles = [AppRoles.admin];
+    expect(AppRoles.canAccessAdminArea(roles), isTrue);
+    expect(AppRoles.isPlatformAdministrator(roles), isFalse);
+  });
+
   test('club owner and club manager are treated as organizer-level users', () {
     final roles = [AppRoles.clubOwner];
     expect(AppRoles.isOrganizer(roles), isTrue);

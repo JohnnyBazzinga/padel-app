@@ -23,7 +23,10 @@ class AuthProvider extends ChangeNotifier {
   List<String> get roles => _user?.roles ?? const [];
   Set<String> get normalizedRoles => AppRoles.normalizeRoles(roles);
 
-  bool get isPlatformAdmin => AppRoles.isAdmin(roles);
+  @Deprecated('Use canAccessAdminArea')
+  bool get isPlatformAdmin => AppRoles.canAccessAdminArea(roles);
+
+  bool get canAccessAdminArea => AppRoles.canAccessAdminArea(roles);
   bool get isOrganizer => AppRoles.isOrganizer(roles);
   bool get canCreateTournaments => AppRoles.canCreateTournaments(roles);
   bool get canInviteOrganizer => AppRoles.canInviteOrganizer(roles);

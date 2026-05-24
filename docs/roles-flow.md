@@ -6,11 +6,11 @@ Controlar permissões reais no app para evitar que qualquer utilizador execute a
 ## Estado atual no app (frontend)
 - `user.roles` é carregado de `/users/me`.
 - `AppRoles` normaliza e resolve permissões:
-  - `canInviteOrganizer` = `isAdmin`
+  - `canInviteOrganizer` = `isAdmin` (APP_OWNER e PLATFORM_ADMIN entram aqui)
   - `canCreateMatches` = `isOrganizer`
   - `canCreateTournaments` = `isOrganizer`
 - Regras de rota:
-  - `/admin/*` protegido por `isPlatformAdmin`.
+  - `/admin/*` protegido por `canAccessAdminArea` (= `isAdmin`).
   - `/create-match` protegido por `canCreateMatches`.
   - `/tournaments/create` protegido por `canCreateTournaments`.
   - `/roles/invitations` é pública para aceitar/rejeitar por token.

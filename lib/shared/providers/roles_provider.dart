@@ -116,6 +116,7 @@ class RolesProvider extends ChangeNotifier {
 
   Future<bool> inviteOrganizer(String email, {String? note}) async {
     _lastErrorStatus = null;
+    _error = null;
     return inviteByRole(email: email, role: AppRoles.organizer, note: note);
   }
 
@@ -125,6 +126,7 @@ class RolesProvider extends ChangeNotifier {
     String? note,
   }) async {
     _lastErrorStatus = null;
+    _error = null;
     try {
       await _api.post('/roles/invitations', data: {
         'email': email,
@@ -142,6 +144,7 @@ class RolesProvider extends ChangeNotifier {
 
   Future<bool> acceptInvitation(String invitationId) async {
     _lastErrorStatus = null;
+    _error = null;
     try {
       await _api.post('/roles/invitations/$invitationId/accept');
       await fetchMyInvitations();
@@ -155,6 +158,7 @@ class RolesProvider extends ChangeNotifier {
 
   Future<bool> rejectInvitation(String invitationId) async {
     _lastErrorStatus = null;
+    _error = null;
     try {
       await _api.post('/roles/invitations/$invitationId/reject');
       await fetchMyInvitations();
@@ -169,6 +173,7 @@ class RolesProvider extends ChangeNotifier {
 
   Future<bool> cancelInvitation(String invitationId) async {
     _lastErrorStatus = null;
+    _error = null;
     try {
       await _api.post('/roles/invitations/$invitationId/cancel');
       await fetchPendingInvitations();
@@ -233,6 +238,7 @@ class RolesProvider extends ChangeNotifier {
     required String message,
   }) async {
     _lastErrorStatus = null;
+    _error = null;
     try {
       await _api.post('/roles/invitations/token/$token/$endpoint');
       _tokenInvitation = null;

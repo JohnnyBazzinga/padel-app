@@ -53,6 +53,10 @@ class AppRoles {
     return normalizeRoles(roles).contains(platformAdmin);
   }
 
+  static bool canAccessAdminArea(List<String> roles) {
+    return isAdmin(roles);
+  }
+
   static bool canManageAll(List<String> roles) {
     return isAdmin(roles);
   }
