@@ -117,7 +117,11 @@ class RolesProvider extends ChangeNotifier {
   Future<bool> inviteOrganizer(String email, {String? note}) async {
     _lastErrorStatus = null;
     _error = null;
-    return inviteByRole(email: email, role: AppRoles.organizer, note: note);
+    return inviteByRole(
+      email: email,
+      role: AppRoles.clubOwner,
+      note: note,
+    );
   }
 
   Future<bool> inviteByRole({
@@ -130,7 +134,7 @@ class RolesProvider extends ChangeNotifier {
     try {
       await _api.post('/roles/invitations', data: {
         'email': email,
-        'role': AppRoles.normalize(role),
+        'role': _normalizeInvitableRole(role),
         if (note != null && note.isNotEmpty) 'note': note,
       });
       await fetchPendingInvitations();
@@ -252,5 +256,16 @@ class RolesProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  String _normalizeInvitableRole(String role) {
+    final normalized = AppRoles.normalize(role);
+    if (normalized == AppRoles.organizer) {
+      return AppRoles.clubOwner;
+    }
+    if (normalized == AppRoles.player || normalized == AppRoles.admin) {
+      return normalized;
+    }
+    return normalized;
   }
 }

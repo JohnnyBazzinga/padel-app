@@ -140,7 +140,9 @@ class AppRouter {
         GoRoute(
           path: '/roles/invitations',
           builder: (context, state) => AdminInvitesScreen(
-            invitationToken: state.uri.queryParameters['token'],
+            invitationToken:
+                state.uri.queryParameters['token'] ??
+                state.uri.queryParameters['invitation'],
             note: state.uri.queryParameters['note'],
           ),
         ),

@@ -217,7 +217,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => context.push('/register'),
+                      onTap: () {
+                        final next = GoRouterState.of(context).uri.queryParameters['next'];
+                        final target = next != null && next.isNotEmpty
+                            ? '/register?next=${Uri.encodeComponent(next)}'
+                            : '/register';
+                        context.push(target);
+                      },
                       child: Text(
                         'Criar conta',
                         style: AppTypography.labelLarge.copyWith(
