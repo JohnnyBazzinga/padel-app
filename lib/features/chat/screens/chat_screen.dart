@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/theme.dart';
 import '../../../shared/providers/chat_provider.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/widgets/widgets.dart';
 
 class ChatScreen extends StatefulWidget {
   final String conversationId;
@@ -42,13 +43,12 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  void _sendMessage() async {
+  Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
     _messageController.clear();
 
-    // Get other user ID from messages
     final messages = context.read<ChatProvider>().messages;
     final auth = context.read<AuthProvider>();
 
@@ -75,9 +75,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Chat'),
-      ),
+      appBar: const CustomAppBar(title: 'Chat'),
       body: Column(
         children: [
           Expanded(
@@ -92,15 +90,20 @@ class _ChatScreenState extends State<ChatScreen> {
                       final isMe = message.senderId == currentUserId;
 
                       return Align(
-                        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                        alignment: isMe
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           constraints: BoxConstraints(
                             maxWidth: MediaQuery.of(context).size.width * 0.75,
                           ),
                           decoration: BoxDecoration(
-                            color: isMe ? AppColors.primary : AppColors.card,
+                            color: isMe ? AppColors.primary : AppColors.surface,
                             borderRadius: BorderRadius.only(
                               topLeft: const Radius.circular(16),
                               topRight: const Radius.circular(16),
@@ -120,38 +123,29 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
           ),
           Container(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 8,
-              top: 8,
-              bottom: MediaQuery.of(context).padding.bottom + 8,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
-                ),
-              ],
+              border: const Border(
+                top: BorderSide(color: AppColors.glassBorder),
+              ),
+              boxShadow: AppDecorations.shadowXs,
             ),
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: CustomTextField(
                     controller: _messageController,
-                    decoration: const InputDecoration(
-                      hintText: 'Escreve uma mensagem...',
-                      border: InputBorder.none,
-                    ),
-                    textCapitalization: TextCapitalization.sentences,
+                    hint: 'Escreve uma mensagem...',
+                    textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
-                IconButton(
+                const SizedBox(width: 8),
+                AppIconButton(
+                  icon: Icons.send_rounded,
                   onPressed: _sendMessage,
-                  icon: const Icon(Icons.send, color: AppColors.primary),
+                  variant: AppIconButtonVariant.filled,
                 ),
               ],
             ),

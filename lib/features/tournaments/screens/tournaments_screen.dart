@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/widgets.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/tournaments_provider.dart';
 
@@ -28,7 +29,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Torneios')),
+      appBar: const CustomAppBar(title: 'Torneios'),
       floatingActionButton: auth.canCreateTournaments
           ? FloatingActionButton.extended(
               onPressed: () => context.push('/tournaments/create'),

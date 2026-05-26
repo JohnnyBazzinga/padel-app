@@ -8,8 +8,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
+  final PreferredSizeWidget? bottom;
   final bool transparent;
   final Color? backgroundColor;
+  final double elevation;
+  final double toolbarHeight;
+  final bool? showBackgroundLine;
 
   const CustomAppBar({
     super.key,
@@ -19,8 +23,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.showBackButton = true,
     this.onBackPressed,
+    this.bottom,
+    this.elevation = 0,
+    this.toolbarHeight = kToolbarHeight,
     this.transparent = false,
     this.backgroundColor,
+    this.showBackgroundLine,
   });
 
   @override
@@ -29,9 +37,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: transparent
           ? Colors.transparent
           : backgroundColor ?? AppColors.background,
-      elevation: 0,
+      toolbarHeight: toolbarHeight,
+      surfaceTintColor: Colors.transparent,
+      elevation: elevation,
       scrolledUnderElevation: 0,
       centerTitle: false,
+      titleSpacing: 12,
+      bottom: bottom,
       leading: leading ??
           (showBackButton && Navigator.canPop(context)
               ? _BackButton(onPressed: onBackPressed)
@@ -44,11 +56,22 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 )
               : null),
       actions: actions,
+      shape: showBackgroundLine == false
+          ? null
+          : const Border(
+              bottom: BorderSide(
+                color: AppColors.glassBorder,
+                width: 0.5,
+              ),
+            ),
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize {
+    final bottomHeight = bottom?.preferredSize.height ?? 0;
+    return Size.fromHeight(toolbarHeight + bottomHeight);
+  }
 }
 
 class _BackButton extends StatelessWidget {
@@ -94,15 +117,17 @@ class SliverCustomAppBar extends StatelessWidget {
   final Widget? background;
   final List<Widget>? actions;
   final bool pinned;
+  final bool? showBottomGradient;
 
   const SliverCustomAppBar({
     super.key,
     required this.title,
     this.subtitle,
-    this.expandedHeight = 200,
+    this.expandedHeight = 220,
     this.background,
     this.actions,
     this.pinned = true,
+    this.showBottomGradient,
   });
 
   @override
@@ -148,7 +173,7 @@ class SliverCustomAppBar extends StatelessWidget {
           children: [
             Text(
               title,
-              style: AppTypography.h3.copyWith(fontSize: 18),
+              style: AppTypography.h3.copyWith(fontSize: 19),
             ),
             if (subtitle != null)
               Text(
@@ -160,21 +185,25 @@ class SliverCustomAppBar extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            if (background != null) background!,
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    AppColors.background.withOpacity(0.5),
-                    AppColors.background,
-                  ],
-                  stops: const [0.0, 0.6, 1.0],
+            if (background != null)
+              Positioned.fill(
+                child: background!,
+              ),
+            if (showBottomGradient != false)
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      AppColors.background.withOpacity(0.45),
+                      AppColors.background,
+                    ],
+                    stops: const [0.0, 0.65, 1.0],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

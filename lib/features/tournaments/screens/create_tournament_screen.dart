@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/theme/theme.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/tournaments_provider.dart';
+import '../../../shared/widgets/widgets.dart';
 
 class CreateTournamentScreen extends StatefulWidget {
   const CreateTournamentScreen({super.key});
@@ -51,12 +52,12 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     super.dispose();
   }
 
-  Future<void> _pickDate(BuildContext context, Function(DateTime) onPick) async {
+  Future<void> _pickDate(BuildContext context, DateTime initial, Function(DateTime) onPick) async {
     final selected = await showDatePicker(
       context: context,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      initialDate: DateTime.now().add(const Duration(days: 2)),
+      initialDate: initial,
     );
     if (selected != null) {
       onPick(selected);
@@ -104,14 +105,14 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     if (!auth.canCreateTournaments) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(title: const Text('Criar Torneio')),
-        body: const Center(child: Text('Sem permissões para criar torneios')),
+        appBar: const CustomAppBar(title: 'Criar Torneio'),
+        body: const Center(child: Text('Sem permissoes para criar torneios')),
       );
     }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Criar Torneio')),
+      appBar: const CustomAppBar(title: 'Criar Torneio'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -119,21 +120,21 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
             key: _formKey,
             child: Column(
               children: [
-                TextFormField(
+                CustomTextField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Nome'),
-                  validator: (v) => v?.isEmpty == true ? 'Nome obrigatório' : null,
+                  label: 'Nome',
+                  validator: (v) => v?.isEmpty == true ? 'Nome obrigatorio' : null,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                CustomTextField(
                   controller: _clubIdController,
-                  decoration: const InputDecoration(labelText: 'ID do clube'),
-                  validator: (v) => v?.isEmpty == true ? 'Clube obrigatório' : null,
+                  label: 'ID do clube',
+                  validator: (v) => v?.isEmpty == true ? 'Clube obrigatorio' : null,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                CustomTextField(
                   controller: _descriptionController,
-                  decoration: const InputDecoration(labelText: 'Descrição'),
+                  label: 'Descricao',
                   maxLines: 2,
                 ),
                 const SizedBox(height: 16),
@@ -141,9 +142,13 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                   children: [
                     Expanded(
                       child: _DateField(
-                        label: 'Início',
+                        label: 'Inicio',
                         value: _startDate,
-                        onTap: () => _pickDate(context, (value) => setState(() => _startDate = value)),
+                        onTap: () => _pickDate(
+                          context,
+                          _startDate,
+                          (value) => setState(() => _startDate = value),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -151,16 +156,24 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                       child: _DateField(
                         label: 'Fim',
                         value: _endDate,
-                        onTap: () => _pickDate(context, (value) => setState(() => _endDate = value)),
+                        onTap: () => _pickDate(
+                          context,
+                          _endDate,
+                          (value) => setState(() => _endDate = value),
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 _DateField(
-                  label: 'Prazo inscrições',
+                  label: 'Prazo inscricoes',
                   value: _registrationDeadline,
-                  onTap: () => _pickDate(context, (value) => setState(() => _registrationDeadline = value)),
+                  onTap: () => _pickDate(
+                    context,
+                    _registrationDeadline,
+                    (value) => setState(() => _registrationDeadline = value),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -169,19 +182,21 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                       child: DropdownButtonFormField<String>(
                         value: _format,
                         decoration: const InputDecoration(labelText: 'Formato'),
-                        items: formats.map((f) => DropdownMenuItem(value: f, child: Text(f))).toList(),
+                        items: formats
+                            .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+                            .toList(),
                         onChanged: (value) => setState(() => _format = value!),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextFormField(
+                      child: CustomTextField(
                         controller: _maxTeamsController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Equipas máximas'),
+                        label: 'Equipas maximas',
                         validator: (v) {
                           final parsed = int.tryParse(v ?? '');
-                          if (parsed == null || parsed <= 1) return 'Valor inválido';
+                          if (parsed == null || parsed <= 1) return 'Valor invalido';
                           return null;
                         },
                       ),
@@ -194,8 +209,10 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _minLevel,
-                        decoration: const InputDecoration(labelText: 'Nível mínimo'),
-                        items: levels.map((l) => DropdownMenuItem(value: l, child: Text(l))).toList(),
+                        decoration: const InputDecoration(labelText: 'Nivel minimo'),
+                        items: levels
+                            .map((l) => DropdownMenuItem(value: l, child: Text(l)))
+                            .toList(),
                         onChanged: (value) => setState(() => _minLevel = value!),
                       ),
                     ),
@@ -203,8 +220,10 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _maxLevel,
-                        decoration: const InputDecoration(labelText: 'Nível máximo'),
-                        items: levels.map((l) => DropdownMenuItem(value: l, child: Text(l))).toList(),
+                        decoration: const InputDecoration(labelText: 'Nivel maximo'),
+                        items: levels
+                            .map((l) => DropdownMenuItem(value: l, child: Text(l)))
+                            .toList(),
                         onChanged: (value) => setState(() => _maxLevel = value!),
                       ),
                     ),
@@ -214,40 +233,35 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
+                      child: CustomTextField(
                         controller: _entryFeeController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Taxa de inscrição (cêntimos)'),
+                        label: 'Taxa inscricao (centimos)',
                         validator: (v) {
                           final parsed = int.tryParse(v ?? '');
-                          if (parsed == null || parsed < 0) return 'Valor inválido';
+                          if (parsed == null || parsed < 0) return 'Valor invalido';
                           return null;
                         },
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: TextFormField(
+                      child: CustomTextField(
                         controller: _prizePoolController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Prémio (cêntimos)'),
+                        label: 'Premio (centimos)',
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _submit,
-                  style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(56)),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Criar Torneio'),
+                PrimaryButton(
+                  label: 'Criar Torneio',
+                  isLoading: _isLoading,
+                  onPressed: _submit,
                 ).animate().fadeIn(duration: 300.ms),
               ],
-            )
-                .animate()
-                .fadeIn(duration: 300.ms)
-                .slideY(begin: 0.05, end: 0),
+            ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.05, end: 0),
           ),
         ),
       ),
@@ -270,19 +284,29 @@ class _DateField extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.calendar_today),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceLight,
+          borderRadius: AppDecorations.borderRadiusMd,
+          border: Border.all(color: AppColors.glassBorder),
         ),
         child: Row(
           children: [
-            Text(label, style: const TextStyle(color: AppColors.textMuted)),
+            const Icon(Icons.calendar_today, color: AppColors.textMuted),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
+            ),
             const Spacer(),
-            Text(DateFormat('dd/MM/yyyy').format(value)),
+            Text(
+              DateFormat('dd/MM/yyyy').format(value),
+              style: AppTypography.labelMedium,
+            ),
           ],
         ),
       ),
     );
   }
 }
-

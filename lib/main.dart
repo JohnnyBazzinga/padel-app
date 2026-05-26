@@ -25,7 +25,7 @@ void main() async {
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
     ),
   );
 
@@ -52,10 +52,10 @@ class PadelApp extends StatelessWidget {
       ],
       child: Consumer<AuthProvider>(
         builder: (context, auth, _) {
-          return MaterialApp.router(
+      return MaterialApp.router(
             title: 'Padel App',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
+            theme: AppTheme.theme,
             routerConfig: AppRouter.router(auth),
           );
         },

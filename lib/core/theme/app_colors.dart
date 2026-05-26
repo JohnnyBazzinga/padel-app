@@ -1,122 +1,120 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // === PRIMARY (Electric Cyan - Energetic, Modern) ===
-  static const Color primary = Color(0xFF00F5D4);
-  static const Color primaryDark = Color(0xFF00C4A7);
-  static Color get primaryMuted => primary.withOpacity(0.15);
-  static Color get primarySubtle => primary.withOpacity(0.08);
+  // Brand + accent (Instagram-inspired, bright and social)
+  static const Color primary = Color(0xFFE1306C);
+  static const Color primaryDark = Color(0xFFC72B5D);
+  static const Color primaryMuted = Color(0x1FE1306C);
+  static const Color primarySubtle = Color(0x10E1306C);
 
-  // === SECONDARY (Electric Purple - Premium feel) ===
-  static const Color secondary = Color(0xFF9B5DE5);
-  static const Color secondaryDark = Color(0xFF7B4BC2);
-  static Color get secondaryMuted => secondary.withOpacity(0.15);
+  static const Color secondary = Color(0xFF833AB4);
+  static const Color secondaryDark = Color(0xFF5E2B97);
+  static const Color secondaryMuted = Color(0x1F833AB4);
 
-  // === ACCENT (Neon Orange - Energy, Sports) ===
-  static const Color accent = Color(0xFFFF6B35);
-  static const Color accentGlow = Color(0xFFFF8C5A);
-  static Color get accentMuted => accent.withOpacity(0.15);
+  static const Color accent = Color(0xFFFCAF45);
+  static const Color accentDark = Color(0xFFF29938);
+  static const Color accentGlow = Color(0xFFFFD56A);
+  static const Color accentMuted = Color(0x29FCAF45);
 
-  // === BACKGROUNDS (Layered depth - Navy tones) ===
-  static const Color background = Color(0xFF0A0E17);
-  static const Color surface = Color(0xFF141B2D);
-  static const Color surfaceLight = Color(0xFF1C2541);
-  static const Color surfaceBright = Color(0xFF243B55);
-  static const Color card = Color(0xFF1A2235);
+  // Surfaces
+  static const Color background = Color(0xFFF7F8FB);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceLight = Color(0xFFF2F5FA);
+  static const Color surfaceBright = Color(0xFFE8ECF5);
+  static const Color card = Color(0xFFFFFFFF);
 
-  // === TEXT (Better contrast) ===
-  static const Color textPrimary = Color(0xFFF8F9FA);
-  static const Color textSecondary = Color(0xFFADB5BD);
-  static const Color textMuted = Color(0xFF6C757D);
-  static const Color textDisabled = Color(0xFF495057);
+  // Text
+  static const Color textPrimary = Color(0xFF111827);
+  static const Color textSecondary = Color(0xFF4B5563);
+  static const Color textMuted = Color(0xFF6B7280);
+  static const Color textDisabled = Color(0xFF9CA3AF);
 
-  // === GLASS EFFECT ===
-  static Color get glassFill => Colors.white.withOpacity(0.08);
-  static Color get glassBorder => Colors.white.withOpacity(0.12);
-  static Color get glassHighlight => Colors.white.withOpacity(0.15);
+  // Glass / strokes
+  static const Color glassFill = Color(0xDBFFFFFF);
+  static const Color glassBorder = Color(0xFFEBEEF5);
+  static const Color glassHighlight = Color(0xF2FFFFFF);
 
-  // === SEMANTIC ===
-  static const Color success = Color(0xFF10B981);
-  static const Color successLight = Color(0xFF34D399);
+  // Semantic
+  static const Color success = Color(0xFF16A34A);
+  static const Color successLight = Color(0xFF4ADE80);
   static const Color warning = Color(0xFFF59E0B);
   static const Color warningLight = Color(0xFFFBBF24);
-  static const Color error = Color(0xFFEF4444);
+  static const Color error = Color(0xFFDC2626);
   static const Color errorLight = Color(0xFFF87171);
-  static const Color info = Color(0xFF3B82F6);
+  static const Color info = Color(0xFF2563EB);
   static const Color infoLight = Color(0xFF60A5FA);
 
-  // === SKILL LEVELS ===
-  static const Color beginner = Color(0xFF10B981);
-  static const Color intermediate = Color(0xFF3B82F6);
+  // Skill levels
+  static const Color beginner = Color(0xFF16A34A);
+  static const Color intermediate = Color(0xFF2563EB);
   static const Color advanced = Color(0xFFF59E0B);
-  static const Color professional = Color(0xFFEF4444);
+  static const Color professional = Color(0xFFDB2777);
 
-  // === RANKING TIERS ===
+  // Ranking tiers
   static const Color bronze = Color(0xFFCD7F32);
-  static const Color silver = Color(0xFFC0C0C0);
-  static const Color gold = Color(0xFFFFD700);
-  static const Color platinum = Color(0xFFE5E4E2);
-  static const Color diamond = Color(0xFFB9F2FF);
+  static const Color silver = Color(0xFF9CA3AF);
+  static const Color gold = Color(0xFFFBBF24);
+  static const Color platinum = Color(0xFF94A3B8);
+  static const Color diamond = Color(0xFF38BDF8);
 
-  // === GRADIENTS ===
+  // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF00F5D4), Color(0xFF00B4D8)],
+    colors: [Color(0xFFE1306C), Color(0xFFC13584)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient secondaryGradient = LinearGradient(
-    colors: [Color(0xFF9B5DE5), Color(0xFF7B4BC2)],
+    colors: [Color(0xFF833AB4), Color(0xFF5B51D8)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient accentGradient = LinearGradient(
-    colors: [Color(0xFFFF6B35), Color(0xFFFF8C5A)],
+    colors: [Color(0xFFFCAF45), Color(0xFFF56040)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient cardGradient = LinearGradient(
-    colors: [Color(0xFF1C2541), Color(0xFF141B2D)],
+    colors: [surface, Colors.white],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient heroGradient = LinearGradient(
-    colors: [Color(0xFF00F5D4), Color(0xFF9B5DE5)],
+    colors: [Color(0xFFFCAF45), Color(0xFFE1306C)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient darkOverlay = LinearGradient(
-    colors: [Colors.transparent, Color(0xFF0A0E17)],
+    colors: [Colors.transparent, Color(0xFFFFFFFF)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
-  static LinearGradient surfaceGradient = LinearGradient(
+  static const LinearGradient surfaceGradient = LinearGradient(
     colors: [surfaceLight, surface],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  // === STATUS COLORS ===
+  // Status
   static const Color confirmed = success;
   static const Color pending = warning;
   static const Color cancelled = error;
   static const Color completed = info;
 
-  // === HELPER METHODS ===
   static Color getSkillColor(String level) {
     switch (level.toLowerCase()) {
       case 'iniciante':
       case 'beginner':
         return beginner;
-      case 'intermédio':
+      case 'intermedio':
       case 'intermediate':
         return intermediate;
-      case 'avançado':
+      case 'avancado':
       case 'advanced':
         return advanced;
       case 'profissional':
@@ -160,7 +158,7 @@ class AppColors {
       case 'cancelado':
         return cancelled;
       case 'completed':
-      case 'concluído':
+      case 'concluido':
         return completed;
       default:
         return textMuted;

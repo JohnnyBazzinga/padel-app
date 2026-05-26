@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/providers/clubs_provider.dart';
+import '../../../shared/widgets/widgets.dart';
 
 class ClubDetailScreen extends StatefulWidget {
   final String clubId;
@@ -36,21 +37,18 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(club.name),
-              background: club.coverImageUrl != null
-                  ? Image.network(
-                      club.coverImageUrl!,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      color: AppColors.surfaceLight,
-                      child: const Icon(Icons.stadium, size: 64, color: AppColors.textMuted),
-                    ),
-            ),
+          SliverCustomAppBar(
+            title: club.name,
+            background: club.coverImageUrl != null
+                ? Image.network(
+                    club.coverImageUrl!,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    color: AppColors.surfaceLight,
+                    child:
+                        const Icon(Icons.stadium, size: 64, color: AppColors.textMuted),
+                  ),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -230,13 +228,13 @@ class _CourtCard extends StatelessWidget {
                   'Pico: $peakPrice',
                   style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                 ),
-              const SizedBox(height: 8),
-              ElevatedButton(
+                  const SizedBox(height: 8),
+              SecondaryButton(
+                label: 'Reservar',
                 onPressed: onBook,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                ),
-                child: const Text('Reservar'),
+                icon: Icons.event_available,
+                isExpanded: false,
+                height: 40,
               ),
             ],
           ),

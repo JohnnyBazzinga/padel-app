@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/theme.dart';
 import '../../../shared/providers/friends_provider.dart';
+import '../../../shared/widgets/widgets.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -12,7 +13,8 @@ class FriendsScreen extends StatefulWidget {
   State<FriendsScreen> createState() => _FriendsScreenState();
 }
 
-class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProviderStateMixin {
+class _FriendsScreenState extends State<FriendsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -36,11 +38,11 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Amigos'),
+      appBar: CustomAppBar(
+        title: 'Amigos',
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.primary,
+          indicatorSize: TabBarIndicatorSize.tab,
           tabs: [
             const Tab(text: 'Amigos'),
             Tab(
@@ -51,14 +53,20 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
                   if (provider.pendingCount > 0) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.error,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: AppDecorations.borderRadiusFull,
                       ),
                       child: Text(
                         '${provider.pendingCount}',
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -71,7 +79,6 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Friends List
           provider.isLoading
               ? const Center(child: CircularProgressIndicator())
               : provider.friends.isEmpty
@@ -79,9 +86,11 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.people_outline, size: 64, color: AppColors.textMuted),
+                          Icon(Icons.people_outline,
+                              size: 64, color: AppColors.textMuted),
                           SizedBox(height: 16),
-                          Text('Sem amigos ainda', style: TextStyle(color: AppColors.textSecondary)),
+                          Text('Sem amigos ainda',
+                              style: TextStyle(color: AppColors.textSecondary)),
                         ],
                       ),
                     )
@@ -96,23 +105,33 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
                                 ? NetworkImage(friend.avatarUrl!)
                                 : null,
                             child: friend.avatarUrl == null
-                                ? Text(friend.name.isNotEmpty ? friend.name[0].toUpperCase() : '?',
-                                    style: const TextStyle(color: Colors.white))
+                                ? Text(
+                                    friend.name.isNotEmpty
+                                        ? friend.name[0].toUpperCase()
+                                        : '?',
+                                    style: const TextStyle(color: Colors.white),
+                                  )
                                 : null,
                           ),
                           title: Text(friend.name),
-                          subtitle: Text('${friend.city} • ${friend.skillLevel}',
-                              style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                          subtitle: Text(
+                            '${friend.city} \u00b7 ${friend.skillLevel}',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                            ),
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              IconButton(
-                                onPressed: () async {
-                                  final chatProvider = context.read<FriendsProvider>();
-                                  // Navigate to chat
+                              AppIconButton(
+                                icon: Icons.chat_bubble_outline,
+                                variant: AppIconButtonVariant.ghost,
+                                onPressed: () {
+                                  context.push('/chat');
                                 },
-                                icon: const Icon(Icons.chat_bubble_outline),
                               ),
+                              const SizedBox(width: 4),
                               PopupMenuButton(
                                 itemBuilder: (context) => [
                                   const PopupMenuItem(
@@ -131,11 +150,12 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
                         );
                       },
                     ),
-
-          // Pending Requests
           provider.pendingRequests.isEmpty
               ? const Center(
-                  child: Text('Sem pedidos pendentes', style: TextStyle(color: AppColors.textSecondary)),
+                  child: Text(
+                    'Sem pedidos pendentes',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
                 )
               : ListView.builder(
                   itemCount: provider.pendingRequests.length,
@@ -148,21 +168,33 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
                             ? NetworkImage(request.avatarUrl!)
                             : null,
                         child: request.avatarUrl == null
-                            ? Text(request.name.isNotEmpty ? request.name[0].toUpperCase() : '?',
-                                style: const TextStyle(color: Colors.white))
+                            ? Text(
+                                request.name.isNotEmpty
+                                    ? request.name[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(color: Colors.white),
+                              )
                             : null,
                       ),
                       title: Text(request.name),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            onPressed: () => provider.acceptRequest(request.id),
-                            icon: const Icon(Icons.check, color: AppColors.success),
-                          ),
-                          IconButton(
+                          GhostButton(
+                            label: 'Recusar',
+                            icon: Icons.close,
+                            color: AppColors.error,
                             onPressed: () => provider.rejectRequest(request.id),
-                            icon: const Icon(Icons.close, color: AppColors.error),
+                            isExpanded: false,
+                            height: 36,
+                          ),
+                          const SizedBox(width: 8),
+                          SecondaryButton(
+                            label: 'Aceitar',
+                            icon: Icons.check,
+                            onPressed: () => provider.acceptRequest(request.id),
+                            isExpanded: false,
+                            height: 36,
                           ),
                         ],
                       ),

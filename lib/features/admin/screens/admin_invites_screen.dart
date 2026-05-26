@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/theme.dart';
 import '../../../shared/models/role_invitation.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/roles_provider.dart';
+import '../../../shared/widgets/widgets.dart';
 
 class AdminInvitesScreen extends StatefulWidget {
   final String? invitationToken;
@@ -100,7 +101,7 @@ class _AdminInvitesScreenState extends State<AdminInvitesScreen> {
     if (!mounted) return;
 
     if (!success) {
-      final error = roles.error ?? 'Não foi possível processar o convite';
+      final error = roles.error ?? 'Nao foi possivel processar o convite';
       if (!auth.isAuthenticated && roles.lastErrorStatus == 401) {
         final next = Uri(
           path: '/roles/invitations',
@@ -128,7 +129,7 @@ class _AdminInvitesScreenState extends State<AdminInvitesScreen> {
         SnackBar(
           content: Text(
             accept
-                ? 'Convite aceite. As tuas permissões foram atualizadas.'
+                ? 'Convite aceite. As tuas permissoes foram atualizadas.'
                 : 'Convite rejeitado.',
           ),
         ),
@@ -143,7 +144,7 @@ class _AdminInvitesScreenState extends State<AdminInvitesScreen> {
     if (!success) {
       if (mounted && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(roles.error ?? 'Não foi possível aceitar')),
+          SnackBar(content: Text(roles.error ?? 'Nao foi possivel aceitar')),
         );
       }
       return;
@@ -163,7 +164,7 @@ class _AdminInvitesScreenState extends State<AdminInvitesScreen> {
     if (!success) {
       if (mounted && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(roles.error ?? 'Não foi possível rejeitar')),
+          SnackBar(content: Text(roles.error ?? 'Nao foi possivel rejeitar')),
         );
       }
       return;
@@ -188,9 +189,7 @@ class _AdminInvitesScreenState extends State<AdminInvitesScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Convites'),
-      ),
+      appBar: const CustomAppBar(title: 'Convites'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 120),
@@ -226,8 +225,7 @@ class _AdminInvitesScreenState extends State<AdminInvitesScreen> {
                   invitations: pending,
                   onPrimaryAction: (invitation) async {
                     if (!invitation.isPending) return;
-                    final cancelled =
-                        await roles.cancelInvitation(invitation.id);
+                    final cancelled = await roles.cancelInvitation(invitation.id);
                     if (!mounted) return;
                     if (cancelled && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -245,13 +243,13 @@ class _AdminInvitesScreenState extends State<AdminInvitesScreen> {
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
-                    'Ainda não recebeste convites.',
+                    'Ainda nao recebeste convites.',
                     style: TextStyle(color: AppColors.textSecondary),
                   ),
                 )
               else
                 _InvitationList(
-                  emptyText: 'Ainda não recebeste convites.',
+                  emptyText: 'Ainda nao recebeste convites.',
                   invitations: mine,
                   onPrimaryAction: (invitation) async {
                     if (!invitation.isPending) return;
@@ -426,16 +424,18 @@ class _TokenInvitationCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: SecondaryButton(
+                      label: 'Rejeitar',
+                      icon: Icons.close,
                       onPressed: onReject,
-                      child: const Text('Rejeitar'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ElevatedButton(
+                    child: PrimaryButton(
+                      label: 'Aceitar',
+                      icon: Icons.check,
                       onPressed: onAccept,
-                      child: const Text('Aceitar'),
                     ),
                   ),
                 ],
@@ -485,35 +485,29 @@ class _InviteOrganizerForm extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextFormField(
+                CustomTextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration:
-                      const InputDecoration(labelText: 'Email do utilizador'),
+                  label: 'Email do utilizador',
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty)
-                      return 'Email obrigatório';
-                    if (!value.contains('@')) return 'Email inválido';
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Email obrigatorio';
+                    }
+                    if (!value.contains('@')) return 'Email invalido';
                     return null;
                   },
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
+                CustomTextField(
                   controller: noteController,
+                  label: 'Mensagem (opcional)',
                   maxLines: 2,
-                  decoration:
-                      const InputDecoration(labelText: 'Mensagem (opcional)'),
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: isSubmitting ? null : onSubmit,
-                    child: isSubmitting
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Convidar organizador'),
-                  ),
+                PrimaryButton(
+                  label: 'Convidar organizador',
+                  isLoading: isSubmitting,
+                  onPressed: onSubmit,
                 ),
               ],
             ),
@@ -583,23 +577,24 @@ class _InvitationList extends StatelessWidget {
                 children: [
                   if (forMeSection && invitation.isPending)
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: onSecondaryAction == null
-                            ? null
-                            : () => onSecondaryAction!(invitation),
-                        child: const Text('Rejeitar'),
-                      ),
+                    child: SecondaryButton(
+                      label: 'Rejeitar',
+                      icon: Icons.close,
+                      onPressed: onSecondaryAction == null
+                          ? null
+                          : () => onSecondaryAction!(invitation),
+                    ),
                     ),
                   if (forMeSection && invitation.isPending)
                     const SizedBox(width: 8),
                   Expanded(
-                    child: ElevatedButton(
+                    child: PrimaryButton(
+                      label: forMeSection ? 'Aceitar' : 'Cancelar',
                       onPressed: onPrimaryAction == null
                           ? null
                           : invitation.isPending
                               ? () => onPrimaryAction!(invitation)
                               : null,
-                      child: Text(forMeSection ? 'Aceitar' : 'Cancelar'),
                     ),
                   ),
                 ],

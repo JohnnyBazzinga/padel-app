@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/theme.dart';
 import '../../../shared/providers/bookings_provider.dart';
+import '../../../shared/widgets/widgets.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -25,7 +26,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Minhas Reservas')),
+      appBar: const CustomAppBar(title: 'Minhas Reservas'),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : provider.myBookings.isEmpty
@@ -33,9 +34,16 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.calendar_today_outlined, size: 64, color: AppColors.textMuted),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 64,
+                        color: AppColors.textMuted,
+                      ),
                       SizedBox(height: 16),
-                      Text('Sem reservas', style: TextStyle(color: AppColors.textSecondary)),
+                      Text(
+                        'Sem reservas',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
                     ],
                   ),
                 )
@@ -44,86 +52,112 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   itemCount: provider.myBookings.length,
                   itemBuilder: (context, index) {
                     final booking = provider.myBookings[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.card,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  booking.clubName,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                ),
+                    return _BookingCard(
+                      booking: booking,
+                      onCancel: () async {
+                        if (booking.status != 'CONFIRMED') return;
+
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Cancelar reserva?'),
+                            content: const Text(
+                              'Tens a certeza que queres cancelar esta reserva?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Nao'),
                               ),
-                              _StatusBadge(status: booking.status),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(booking.courtName, style: TextStyle(color: AppColors.textSecondary)),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
-                              const SizedBox(width: 8),
-                              Text(DateFormat('dd MMM yyyy', 'pt_PT').format(booking.date)),
-                              const SizedBox(width: 16),
-                              Icon(Icons.access_time, size: 16, color: AppColors.primary),
-                              const SizedBox(width: 8),
-                              Text('${booking.startTime} - ${booking.endTime}'),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                booking.priceFormatted,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
-                                ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Sim, cancelar'),
                               ),
-                              if (booking.status == 'CONFIRMED')
-                                TextButton(
-                                  onPressed: () async {
-                                    final confirm = await showDialog<bool>(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: const Text('Cancelar reserva?'),
-                                        content: const Text('Tens a certeza que queres cancelar esta reserva?'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(context, false),
-                                            child: const Text('Não'),
-                                          ),
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(context, true),
-                                            child: const Text('Sim, cancelar'),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                    if (confirm == true) {
-                                      await provider.cancelBooking(booking.id);
-                                    }
-                                  },
-                                  child: const Text('Cancelar', style: TextStyle(color: AppColors.error)),
-                                ),
                             ],
                           ),
-                        ],
-                      ),
+                        );
+                        if (confirm == true) {
+                          await provider.cancelBooking(booking.id);
+                        }
+                      },
                     );
                   },
                 ),
+    );
+  }
+}
+
+class _BookingCard extends StatelessWidget {
+  final dynamic booking;
+  final Future<void> Function() onCancel;
+
+  const _BookingCard({
+    required this.booking,
+    required this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dateLabel = DateFormat('dd MMM yyyy', 'pt_PT').format(booking.date);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: AppDecorations.glassCard,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  booking.clubName,
+                  style: AppTypography.h4,
+                ),
+              ),
+              _StatusBadge(status: booking.status),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            booking.courtName,
+            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(dateLabel),
+              const SizedBox(width: 16),
+              const Icon(Icons.access_time, size: 16, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text('${booking.startTime} - ${booking.endTime}'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                booking.priceFormatted,
+                style: AppTypography.h3.copyWith(
+                  color: AppColors.primary,
+                  fontSize: 24,
+                ),
+              ),
+              if (booking.status == 'CONFIRMED')
+                GhostButton(
+                  label: 'Cancelar',
+                  icon: Icons.close,
+                  color: AppColors.error,
+                  onPressed: onCancel,
+                  isExpanded: false,
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -153,7 +187,7 @@ class _StatusBadge extends StatelessWidget {
         break;
       case 'COMPLETED':
         color = AppColors.textMuted;
-        label = 'Concluída';
+        label = 'Concluida';
         break;
       default:
         color = AppColors.textMuted;
@@ -161,14 +195,14 @@ class _StatusBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withOpacity(0.12),
+        borderRadius: AppDecorations.borderRadiusFull,
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500),
+        style: AppTypography.labelSmall.copyWith(color: color),
       ),
     );
   }

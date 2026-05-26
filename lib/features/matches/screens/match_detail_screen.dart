@@ -45,9 +45,10 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      appBar: CustomAppBar(
+        titleWidget: const SizedBox.shrink(),
+        transparent: true,
+        showBackgroundLine: false,
         leading: Padding(
           padding: const EdgeInsets.only(left: 12),
           child: Center(

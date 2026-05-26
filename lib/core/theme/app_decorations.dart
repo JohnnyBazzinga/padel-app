@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppDecorations {
-  // === BORDER RADIUS ===
-  static const double radiusXs = 4;
-  static const double radiusSm = 8;
-  static const double radiusMd = 12;
-  static const double radiusLg = 16;
-  static const double radiusXl = 24;
-  static const double radiusFull = 100;
+  // Radius
+  static const double radiusXs = 6;
+  static const double radiusSm = 10;
+  static const double radiusMd = 14;
+  static const double radiusLg = 20;
+  static const double radiusXl = 28;
+  static const double radiusFull = 999;
 
-  // === BORDER RADIUS OBJECTS ===
+  // Radius objects
   static BorderRadius get borderRadiusXs => BorderRadius.circular(radiusXs);
   static BorderRadius get borderRadiusSm => BorderRadius.circular(radiusSm);
   static BorderRadius get borderRadiusMd => BorderRadius.circular(radiusMd);
@@ -19,64 +19,67 @@ class AppDecorations {
   static BorderRadius get borderRadiusXl => BorderRadius.circular(radiusXl);
   static BorderRadius get borderRadiusFull => BorderRadius.circular(radiusFull);
 
-  // === SHADOWS ===
-  static List<BoxShadow> get shadowSm => [
+  // Elevations
+  static List<BoxShadow> get shadowXs => [
         BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: Colors.black.withValues(alpha: 0.08),
           blurRadius: 8,
           offset: const Offset(0, 2),
         ),
       ];
 
+  static List<BoxShadow> get shadowSm => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.08),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ];
+
   static List<BoxShadow> get shadowMd => [
         BoxShadow(
-          color: Colors.black.withOpacity(0.15),
+          color: Colors.black.withValues(alpha: 0.1),
           blurRadius: 16,
-          offset: const Offset(0, 4),
+          offset: const Offset(0, 6),
         ),
       ];
 
-  static List<BoxShadow> get shadowLg => [
+  static List<BoxShadow> shadowGlow(Color color, {double intensity = 0.24}) => [
         BoxShadow(
-          color: Colors.black.withOpacity(0.2),
-          blurRadius: 24,
-          offset: const Offset(0, 8),
-        ),
-      ];
-
-  static List<BoxShadow> shadowGlow(Color color, {double intensity = 0.3}) => [
-        BoxShadow(
-          color: color.withOpacity(intensity),
-          blurRadius: 20,
+          color: color.withValues(alpha: intensity),
+          blurRadius: 18,
           spreadRadius: -4,
         ),
       ];
 
   static List<BoxShadow> shadowGlowStrong(Color color) => [
         BoxShadow(
-          color: color.withOpacity(0.4),
-          blurRadius: 30,
+          color: color.withValues(alpha: 0.3),
+          blurRadius: 24,
           spreadRadius: -2,
         ),
       ];
 
-  // === CARD DECORATIONS ===
+  // Card decorations
   static BoxDecoration get glassCard => BoxDecoration(
         color: AppColors.glassFill,
         borderRadius: borderRadiusLg,
         border: Border.all(color: AppColors.glassBorder, width: 1),
+        boxShadow: shadowXs,
       );
 
   static BoxDecoration get glassCardBright => BoxDecoration(
-        color: AppColors.glassHighlight,
+        color: Colors.white,
         borderRadius: borderRadiusLg,
         border: Border.all(color: AppColors.glassBorder, width: 1),
+        boxShadow: shadowSm,
       );
 
   static BoxDecoration get gradientCard => BoxDecoration(
         gradient: AppColors.cardGradient,
         borderRadius: borderRadiusLg,
         border: Border.all(color: AppColors.glassBorder, width: 1),
+        boxShadow: shadowSm,
       );
 
   static BoxDecoration get surfaceCard => BoxDecoration(
@@ -91,11 +94,11 @@ class AppDecorations {
         boxShadow: shadowMd,
       );
 
-  // === BUTTON DECORATIONS ===
+  // Buttons
   static BoxDecoration get primaryButton => BoxDecoration(
         gradient: AppColors.primaryGradient,
         borderRadius: borderRadiusMd,
-        boxShadow: shadowGlow(AppColors.primary),
+        boxShadow: shadowGlow(AppColors.primary, intensity: 0.28),
       );
 
   static BoxDecoration get secondaryButton => BoxDecoration(
@@ -107,7 +110,7 @@ class AppDecorations {
   static BoxDecoration get ghostButton => BoxDecoration(
         color: Colors.transparent,
         borderRadius: borderRadiusMd,
-        border: Border.all(color: AppColors.primary, width: 1.5),
+        border: Border.all(color: AppColors.glassBorder, width: 1.2),
       );
 
   static BoxDecoration get accentButton => BoxDecoration(
@@ -116,28 +119,28 @@ class AppDecorations {
         boxShadow: shadowGlow(AppColors.accent),
       );
 
-  // === INPUT DECORATIONS ===
+  // Input
   static BoxDecoration inputDefault = BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: AppColors.surface,
         borderRadius: borderRadiusMd,
-        border: Border.all(color: Colors.transparent, width: 2),
+        border: Border.all(color: AppColors.glassBorder, width: 1.2),
       );
 
   static BoxDecoration inputFocused = BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: AppColors.surface,
         borderRadius: borderRadiusMd,
-        border: Border.all(color: AppColors.primary, width: 2),
+        border: Border.all(color: AppColors.primary, width: 1.5),
       );
 
   static BoxDecoration inputError = BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: AppColors.surface,
         borderRadius: borderRadiusMd,
-        border: Border.all(color: AppColors.error, width: 2),
+        border: Border.all(color: AppColors.error, width: 1.5),
       );
 
-  // === CHIP/BADGE DECORATIONS ===
+  // Chips / badges
   static BoxDecoration get chipDefault => BoxDecoration(
-        color: AppColors.surfaceBright,
+        color: AppColors.surfaceLight,
         borderRadius: borderRadiusFull,
       );
 
@@ -147,45 +150,34 @@ class AppDecorations {
       );
 
   static BoxDecoration get chipSuccess => BoxDecoration(
-        color: AppColors.success.withOpacity(0.15),
+        color: AppColors.success.withValues(alpha: 0.12),
         borderRadius: borderRadiusFull,
       );
 
   static BoxDecoration get chipWarning => BoxDecoration(
-        color: AppColors.warning.withOpacity(0.15),
+        color: AppColors.warning.withValues(alpha: 0.12),
         borderRadius: borderRadiusFull,
       );
 
   static BoxDecoration get chipError => BoxDecoration(
-        color: AppColors.error.withOpacity(0.15),
+        color: AppColors.error.withValues(alpha: 0.12),
         borderRadius: borderRadiusFull,
       );
 
-  // === AVATAR DECORATIONS ===
+  // Avatar
   static BoxDecoration avatarGradient({double size = 48}) => BoxDecoration(
         gradient: AppColors.primaryGradient,
         shape: BoxShape.circle,
-        boxShadow: shadowGlow(AppColors.primary, intensity: 0.2),
+        boxShadow: shadowGlow(AppColors.primary, intensity: 0.22),
       );
 
   static BoxDecoration get avatarSurface => BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: AppColors.surface,
         shape: BoxShape.circle,
         border: Border.all(color: AppColors.glassBorder, width: 2),
       );
 
-  // === DIVIDERS ===
-  static BoxDecoration get divider => BoxDecoration(
-        color: AppColors.glassBorder,
-      );
-
-  // === ICON CONTAINER ===
-  static BoxDecoration iconContainer(Color color) => BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: borderRadiusSm,
-      );
-
-  // === NAV BAR ===
+  // Misc
   static BoxDecoration get bottomNavBar => BoxDecoration(
         color: AppColors.surface,
         borderRadius: borderRadiusXl,
@@ -193,7 +185,7 @@ class AppDecorations {
         boxShadow: shadowMd,
       );
 
-  // === BLUR FILTER (for glass effects) ===
+  // Filters
   static ImageFilter get blurFilter => ImageFilter.blur(sigmaX: 10, sigmaY: 10);
   static ImageFilter get blurFilterLight => ImageFilter.blur(sigmaX: 5, sigmaY: 5);
   static ImageFilter get blurFilterHeavy => ImageFilter.blur(sigmaX: 20, sigmaY: 20);

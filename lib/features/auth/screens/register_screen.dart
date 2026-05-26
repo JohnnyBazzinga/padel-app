@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/theme.dart';
 import '../../../shared/providers/auth_provider.dart';
+import '../../../shared/widgets/widgets.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -20,13 +21,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _cityController = TextEditingController();
   String _selectedLevel = 'BEGINNER';
-  bool _obscurePassword = true;
   bool _isLoading = false;
 
   final _levels = [
     {'value': 'BEGINNER', 'label': 'Iniciante'},
-    {'value': 'INTERMEDIATE', 'label': 'Intermédio'},
-    {'value': 'ADVANCED', 'label': 'Avançado'},
+    {'value': 'INTERMEDIATE', 'label': 'Intermedio'},
+    {'value': 'ADVANCED', 'label': 'Avancado'},
     {'value': 'PROFESSIONAL', 'label': 'Profissional'},
   ];
 
@@ -77,9 +77,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      appBar: const CustomAppBar(
+        title: 'Criar conta',
+        transparent: true,
+        showBackgroundLine: false,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -90,31 +91,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Criar conta',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Junta-te à comunidade de Padel',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                  'Regista-te e encontra parceiros para jogar.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 32),
-                // Name Row
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
+                      child: CustomTextField(
                         controller: _firstNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nome',
-                        ),
+                        label: 'Nome',
+                        hint: 'Joao',
+                        prefixIcon: Icons.person_outline,
+                        textInputAction: TextInputAction.next,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Obrigatório';
+                            return 'Campo obrigatorio';
                           }
                           return null;
                         },
@@ -122,116 +116,99 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextFormField(
+                      child: CustomTextField(
                         controller: _lastNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Apelido',
-                        ),
+                        label: 'Apelido',
+                        hint: 'Silva',
+                        prefixIcon: Icons.badge_outlined,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Campo obrigatorio';
+                          }
+                          return null;
+                        },
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Email
-                TextFormField(
+                CustomTextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
+                  textInputAction: TextInputAction.next,
+                  label: 'Email',
+                  hint: 'teuemail@exemplo.pt',
+                  prefixIcon: Icons.email_outlined,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Introduz o teu email';
                     }
                     if (!value.contains('@')) {
-                      return 'Email inválido';
+                      return 'Email invalido';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                // Password
-                TextFormField(
+                CustomTextField(
                   controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outlined),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() => _obscurePassword = !_obscurePassword);
-                      },
-                    ),
-                  ),
+                  obscureText: true,
+                  label: 'Password',
+                  hint: 'minimo 8 caracteres',
+                  prefixIcon: Icons.lock_outline,
+                  textInputAction: TextInputAction.next,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Introduz uma password';
                     }
                     if (value.length < 8) {
-                      return 'Mínimo 8 caracteres';
+                      return 'Minimo 8 caracteres';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                // City
-                TextFormField(
+                CustomTextField(
                   controller: _cityController,
-                  decoration: const InputDecoration(
-                    labelText: 'Cidade',
-                    prefixIcon: Icon(Icons.location_on_outlined),
-                  ),
+                  label: 'Cidade',
+                  hint: 'Lisboa',
+                  prefixIcon: Icons.location_on_outlined,
                 ),
                 const SizedBox(height: 16),
-                // Skill Level
                 DropdownButtonFormField<String>(
                   value: _selectedLevel,
-                  decoration: const InputDecoration(
-                    labelText: 'Nível de jogo',
-                    prefixIcon: Icon(Icons.sports_tennis),
+                  decoration: InputDecoration(
+                    labelText: 'Nivel de jogo',
+                    labelStyle: AppTypography.labelMedium,
+                    prefixIcon: const Icon(Icons.sports_tennis),
                   ),
-                  items: _levels.map((level) {
-                    return DropdownMenuItem(
-                      value: level['value'],
-                      child: Text(level['label']!),
-                    );
-                  }).toList(),
+                  items: _levels
+                      .map(
+                        (level) => DropdownMenuItem(
+                          value: level['value'],
+                          child: Text(level['label']!),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (value) {
                     setState(() => _selectedLevel = value!);
                   },
                 ),
                 const SizedBox(height: 32),
-                // Register Button
-                SizedBox(
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Criar conta'),
-                  ),
+                PrimaryButton(
+                  label: 'Criar conta',
+                  isLoading: _isLoading,
+                  onPressed: _register,
                 ),
-                const SizedBox(height: 16),
-                // Login Link
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Já tens conta? ',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      'Ja tens conta? ',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     TextButton(
                       onPressed: () => context.pop(),

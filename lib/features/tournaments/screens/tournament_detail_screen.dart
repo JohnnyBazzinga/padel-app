@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/theme.dart';
 import '../../../shared/providers/tournaments_provider.dart';
+import '../../../shared/widgets/widgets.dart';
 
 class TournamentDetailScreen extends StatefulWidget {
   final String tournamentId;
@@ -34,16 +35,16 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(tournament.name),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.accentGradient,
-                ),
-                child: const Icon(Icons.emoji_events, size: 64, color: Colors.white54),
+          SliverCustomAppBar(
+            title: tournament.name,
+            background: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.accentGradient,
+              ),
+              child: const Icon(
+                Icons.emoji_events,
+                size: 64,
+                color: Colors.white54,
               ),
             ),
           ),
@@ -53,30 +54,58 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Info Cards
                   Row(
                     children: [
-                      Expanded(child: _InfoCard(icon: Icons.calendar_today, label: 'Data', value: '${DateFormat('dd/MM').format(tournament.startDate)} - ${DateFormat('dd/MM').format(tournament.endDate)}')),
+                      Expanded(
+                        child: _InfoCard(
+                          icon: Icons.calendar_today,
+                          label: 'Data',
+                          value:
+                              '${DateFormat('dd/MM').format(tournament.startDate)} - ${DateFormat('dd/MM').format(tournament.endDate)}',
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _InfoCard(icon: Icons.attach_money, label: 'Inscrição', value: tournament.entryFeeFormatted)),
+                      Expanded(
+                        child: _InfoCard(
+                          icon: Icons.attach_money,
+                          label: 'Inscricao',
+                          value: tournament.entryFeeFormatted,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: _InfoCard(icon: Icons.group, label: 'Vagas', value: '${tournament.spotsLeft}/${tournament.maxTeams}')),
+                      Expanded(
+                        child: _InfoCard(
+                          icon: Icons.group,
+                          label: 'Vagas',
+                          value: '${tournament.spotsLeft}/${tournament.maxTeams}',
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _InfoCard(icon: Icons.workspace_premium, label: 'Prémio', value: tournament.prizePoolFormatted)),
+                      Expanded(
+                        child: _InfoCard(
+                          icon: Icons.workspace_premium,
+                          label: 'Premio',
+                          value: tournament.prizePoolFormatted,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
-
-                  // Club
-                  const Text('Local', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Local',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Row(
                       children: [
                         const Icon(Icons.stadium, color: AppColors.primary),
@@ -85,8 +114,18 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(tournament.clubName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                              Text(tournament.clubCity, style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                              Text(
+                                tournament.clubName,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600),
+                              ),
+                              Text(
+                                tournament.clubCity,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -94,13 +133,17 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Level
-                  const Text('Nível', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Nivel',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Row(
                       children: [
                         const Icon(Icons.signal_cellular_alt, color: AppColors.accent),
@@ -110,13 +153,17 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Format
-                  const Text('Formato', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Formato',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Row(
                       children: [
                         const Icon(Icons.account_tree, color: AppColors.info),
@@ -125,14 +172,19 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
                       ],
                     ),
                   ),
-
                   if (tournament.description != null) ...[
                     const SizedBox(height: 24),
-                    const Text('Descrição', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Descricao',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 12),
-                    Text(tournament.description!, style: TextStyle(color: AppColors.textSecondary)),
+                    Text(
+                      tournament.description!,
+                      style: const TextStyle(color: AppColors.textSecondary),
+                    ),
                   ],
-
                   const SizedBox(height: 100),
                 ],
               ),
@@ -144,17 +196,21 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
           ? SafeArea(
               child: Container(
                 padding: const EdgeInsets.all(16),
-                child: ElevatedButton(
+                child: PrimaryButton(
+                  label: 'Inscrever',
+                  isLoading: provider.isLoading,
                   onPressed: () async {
-                    final success = await provider.register(widget.tournamentId);
+                    final success =
+                        await provider.register(widget.tournamentId);
                     if (success && mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Inscrição realizada!'), backgroundColor: AppColors.success),
+                        const SnackBar(
+                          content: Text('Inscricao realizada!'),
+                          backgroundColor: AppColors.success,
+                        ),
                       );
                     }
                   },
-                  style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(56)),
-                  child: const Text('Inscrever'),
                 ),
               ),
             )
@@ -168,19 +224,26 @@ class _InfoCard extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoCard({required this.icon, required this.label, required this.value});
+  const _InfoCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: AppColors.primary, size: 20),
           const SizedBox(height: 8),
-          Text(label, style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
           const SizedBox(height: 4),
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],

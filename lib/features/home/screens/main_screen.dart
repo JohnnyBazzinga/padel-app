@@ -43,9 +43,10 @@ class MainScreen extends StatelessWidget {
     final selectedIndex = _calculateSelectedIndex(context);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: child,
       extendBody: true,
-      bottomNavigationBar: _FloatingNavBar(
+      bottomNavigationBar: _InstagramBottomNavBar(
         selectedIndex: selectedIndex,
         onTap: (index) => _onItemTapped(context, index),
       ),
@@ -53,84 +54,96 @@ class MainScreen extends StatelessWidget {
   }
 }
 
-class _FloatingNavBar extends StatelessWidget {
+class _InstagramBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onTap;
 
-  const _FloatingNavBar({
+  const _InstagramBottomNavBar({
     required this.selectedIndex,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppDecorations.borderRadiusXl,
-        border: Border.all(color: AppColors.glassBorder, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _NavItem(
-              icon: Icons.home_outlined,
-              activeIcon: Icons.home_rounded,
-              label: 'Início',
-              isSelected: selectedIndex == 0,
-              onTap: () => onTap(0),
-            ),
-            _NavItem(
-              icon: Icons.location_city_outlined,
-              activeIcon: Icons.location_city_rounded,
-              label: 'Clubes',
-              isSelected: selectedIndex == 1,
-              onTap: () => onTap(1),
-            ),
-            _CenterNavButton(
-              isSelected: selectedIndex == 2,
-              onTap: () => onTap(2),
-            ),
-            _NavItem(
-              icon: Icons.leaderboard_outlined,
-              activeIcon: Icons.leaderboard_rounded,
-              label: 'Ranking',
-              isSelected: selectedIndex == 3,
-              onTap: () => onTap(3),
-            ),
-            _NavItem(
-              icon: Icons.person_outline_rounded,
-              activeIcon: Icons.person_rounded,
-              label: 'Perfil',
-              isSelected: selectedIndex == 4,
-              onTap: () => onTap(4),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppDecorations.borderRadiusXl,
+          border: Border.all(color: AppColors.glassBorder, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
             ),
           ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              Expanded(
+                child: _InstagramNavItem(
+                  icon: Icons.home_rounded,
+                  activeIcon: Icons.home_filled,
+                  label: 'Inicio',
+                  isSelected: selectedIndex == 0,
+                  onTap: () => onTap(0),
+                ),
+              ),
+              Expanded(
+                child: _InstagramNavItem(
+                  icon: Icons.location_on_outlined,
+                  activeIcon: Icons.location_on_rounded,
+                  label: 'Clubes',
+                  isSelected: selectedIndex == 1,
+                  onTap: () => onTap(1),
+                ),
+              ),
+              Expanded(
+                child: _InstagramCenterNavItem(
+                  icon: Icons.sports_tennis_rounded,
+                  isSelected: selectedIndex == 2,
+                  onTap: () => onTap(2),
+                ),
+              ),
+              Expanded(
+                child: _InstagramNavItem(
+                  icon: Icons.leaderboard_outlined,
+                  activeIcon: Icons.leaderboard_rounded,
+                  label: 'Ranking',
+                  isSelected: selectedIndex == 3,
+                  onTap: () => onTap(3),
+                ),
+              ),
+              Expanded(
+                child: _InstagramNavItem(
+                  icon: Icons.person_outline_rounded,
+                  activeIcon: Icons.person_rounded,
+                  label: 'Perfil',
+                  isSelected: selectedIndex == 4,
+                  onTap: () => onTap(4),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _InstagramNavItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _NavItem({
+  const _InstagramNavItem({
     required this.icon,
     required this.activeIcon,
     required this.label,
@@ -142,13 +155,13 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        duration: const Duration(milliseconds: 220),
+        margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
+          borderRadius: AppDecorations.borderRadiusFull,
           color: isSelected ? AppColors.primaryMuted : Colors.transparent,
-          borderRadius: AppDecorations.borderRadiusMd,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -157,12 +170,12 @@ class _NavItem extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               child: Icon(
                 isSelected ? activeIcon : icon,
-                key: ValueKey(isSelected),
+                key: ValueKey('$isSelected-$label'),
                 color: isSelected ? AppColors.primary : AppColors.textMuted,
                 size: 22,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: AppTypography.labelSmall.copyWith(
@@ -179,11 +192,13 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-class _CenterNavButton extends StatelessWidget {
+class _InstagramCenterNavItem extends StatelessWidget {
+  final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _CenterNavButton({
+  const _InstagramCenterNavItem({
+    required this.icon,
     required this.isSelected,
     required this.onTap,
   });
@@ -193,21 +208,22 @@ class _CenterNavButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 52,
-        height: 52,
+        duration: const Duration(milliseconds: 220),
+        width: 56,
+        height: 56,
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
           shape: BoxShape.circle,
+          gradient: AppColors.primaryGradient,
           boxShadow: AppDecorations.shadowGlow(
             AppColors.primary,
-            intensity: isSelected ? 0.4 : 0.25,
+            intensity: isSelected ? 0.5 : 0.35,
           ),
         ),
         child: Icon(
-          Icons.sports_tennis_rounded,
+          icon,
           color: AppColors.background,
-          size: 26,
+          size: 27,
         ),
       ),
     );

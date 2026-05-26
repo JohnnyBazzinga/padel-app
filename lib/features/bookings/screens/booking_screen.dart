@@ -3,8 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/theme.dart';
 import '../../../shared/providers/bookings_provider.dart';
+import '../../../shared/widgets/widgets.dart';
 
 class BookingScreen extends StatefulWidget {
   final String courtId;
@@ -55,11 +56,11 @@ class _BookingScreenState extends State<BookingScreen> {
 
     final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
     final booking = await context.read<BookingsProvider>().createBooking(
-      courtId: widget.courtId,
-      date: dateStr,
-      startTime: _selectedSlot!.startTime,
-      endTime: _selectedSlot!.endTime,
-    );
+          courtId: widget.courtId,
+          date: dateStr,
+          startTime: _selectedSlot!.startTime,
+          endTime: _selectedSlot!.endTime,
+        );
 
     if (booking != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -75,29 +76,33 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<BookingsProvider>();
+    final isReady = _selectedSlot != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Reservar')),
+      appBar: const CustomAppBar(title: 'Reservar'),
       body: Column(
         children: [
-          // Date selector
           GestureDetector(
             onTap: _selectDate,
             child: Container(
-              margin: const EdgeInsets.all(16),
+              margin: const EdgeInsets.fromLTRB(16, 16, 16, 12),
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(12),
-              ),
+              decoration: AppDecorations.glassCard,
               child: Row(
                 children: [
-                  const Icon(Icons.calendar_today, color: AppColors.primary),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryMuted,
+                      borderRadius: AppDecorations.borderRadiusSm,
+                    ),
+                    child: const Icon(Icons.calendar_today, color: AppColors.primary),
+                  ),
                   const SizedBox(width: 12),
                   Text(
                     DateFormat('EEEE, d MMMM', 'pt_PT').format(_selectedDate),
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    style: AppTypography.bodyLarge,
                   ),
                   const Spacer(),
                   const Icon(Icons.chevron_right, color: AppColors.textMuted),
@@ -105,7 +110,6 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
           ),
-          // Time slots
           Expanded(
             child: provider.isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -136,43 +140,39 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: _selectedSlot != null
+      bottomNavigationBar: isReady
           ? SafeArea(
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5),
-                    ),
-                  ],
+                  border: const Border(top: BorderSide(color: AppColors.glassBorder)),
+                  boxShadow: AppDecorations.shadowXs,
                 ),
                 child: Row(
                   children: [
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Total', style: TextStyle(color: AppColors.textSecondary)),
-                        Text(
-                          _selectedSlot!.priceFormatted,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Total', style: AppTypography.labelMedium),
+                          Text(
+                            _selectedSlot!.priceFormatted,
+                            style: AppTypography.statNumber.copyWith(
+                              color: AppColors.primary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const Spacer(),
-                    SizedBox(
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: provider.isLoading ? null : _confirmBooking,
-                        child: const Text('Confirmar Reserva'),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: PrimaryButton(
+                        label: 'Confirmar reserva',
+                        isLoading: provider.isLoading,
+                        onPressed: _confirmBooking,
+                        isExpanded: true,
                       ),
                     ),
                   ],
@@ -203,22 +203,30 @@ class _TimeSlotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = isSelected
+        ? AppColors.primary
+        : available
+            ? AppColors.surface
+            : AppColors.surfaceBright;
+
+    final textColor = isSelected
+        ? AppColors.background
+        : available
+            ? AppColors.textPrimary
+            : AppColors.textMuted;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary
-              : available
-                  ? AppColors.card
-                  : AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(12),
+          color: color,
+          borderRadius: AppDecorations.borderRadiusMd,
           border: Border.all(
             color: isSelected
                 ? AppColors.primary
                 : available
-                    ? AppColors.surfaceLight
-                    : Colors.transparent,
+                    ? AppColors.glassBorder
+                    : AppColors.glassBorder.withOpacity(0.6),
           ),
         ),
         child: Column(
@@ -226,25 +234,21 @@ class _TimeSlotCard extends StatelessWidget {
           children: [
             Text(
               time,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isSelected
-                    ? Colors.white
-                    : available
-                        ? AppColors.textPrimary
-                        : AppColors.textMuted,
+              style: AppTypography.labelLarge.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               price,
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.bodySmall.copyWith(
                 color: isSelected
-                    ? Colors.white.withOpacity(0.8)
-                    : available
-                        ? (isPeak ? AppColors.warning : AppColors.textSecondary)
-                        : AppColors.textMuted,
+                    ? AppColors.background.withOpacity(0.9)
+                    : isPeak
+                        ? AppColors.warning
+                        : AppColors.textSecondary,
+                fontWeight: isPeak ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
           ],
