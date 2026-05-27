@@ -5,7 +5,7 @@ class GradientCard extends StatelessWidget {
   final Widget child;
   final EdgeInsets? padding;
   final VoidCallback? onTap;
-  final LinearGradient? gradient;
+  final Color? color;
   final double? width;
   final double? height;
   final BorderRadius? borderRadius;
@@ -16,7 +16,7 @@ class GradientCard extends StatelessWidget {
     required this.child,
     this.padding,
     this.onTap,
-    this.gradient,
+    this.color,
     this.width,
     this.height,
     this.borderRadius,
@@ -26,12 +26,13 @@ class GradientCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = borderRadius ?? AppDecorations.borderRadiusLg;
+    final Color backgroundColor = color ?? AppColors.surface;
 
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        gradient: gradient ?? AppColors.cardGradient,
+        color: backgroundColor,
         borderRadius: radius,
         border: Border.all(color: AppColors.glassBorder, width: 1),
         boxShadow: boxShadow,

@@ -168,8 +168,7 @@ class _ConversationTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        gradient: hasUnread ? null : AppColors.cardGradient,
-        color: hasUnread ? AppColors.primarySubtle : null,
+        color: hasUnread ? AppColors.primarySubtle : AppColors.surface,
         borderRadius: AppDecorations.borderRadiusLg,
         border: Border.all(
           color: hasUnread ? AppColors.primary.withValues(alpha: 0.3) : AppColors.glassBorder,
@@ -261,7 +260,7 @@ class _ConversationTile extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
+                          color: AppColors.primary,
                           borderRadius: AppDecorations.borderRadiusFull,
                         ),
                         child: Text(

@@ -190,7 +190,7 @@ class _MatchCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.cardGap),
       decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
+        color: AppColors.surface,
         borderRadius: AppDecorations.borderRadiusLg,
         border: Border.all(
           color: isFull
@@ -313,7 +313,7 @@ class _MatchCard extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
+                          color: AppColors.primary,
                           borderRadius: AppDecorations.borderRadiusFull,
                         ),
                         child: Row(
@@ -461,7 +461,7 @@ class _CreateMatchFAB extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 80),
       decoration: BoxDecoration(
-        gradient: AppColors.accentGradient,
+        color: AppColors.accent,
         borderRadius: AppDecorations.borderRadiusMd,
         boxShadow: AppDecorations.shadowGlow(AppColors.accent),
       ),

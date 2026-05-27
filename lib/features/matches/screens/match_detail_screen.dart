@@ -159,7 +159,7 @@ class _HeroHeader extends StatelessWidget {
     return Container(
       height: 280,
       decoration: BoxDecoration(
-        gradient: AppColors.heroGradient,
+        color: AppColors.surface,
       ),
       child: Stack(
         children: [
@@ -167,24 +167,6 @@ class _HeroHeader extends StatelessWidget {
           Positioned.fill(
             child: CustomPaint(
               painter: _PatternPainter(),
-            ),
-          ),
-
-          // Gradient overlay
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    AppColors.background.withValues(alpha: 0.3),
-                    AppColors.background,
-                  ],
-                  stops: const [0.0, 0.7, 1.0],
-                ),
-              ),
             ),
           ),
 
@@ -468,7 +450,7 @@ class _TeamSection extends StatelessWidget {
                 height: 50,
                 margin: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  gradient: AppColors.accentGradient,
+                  color: AppColors.accent,
                   shape: BoxShape.circle,
                   boxShadow: AppDecorations.shadowGlow(AppColors.accent, intensity: 0.3),
                 ),

@@ -33,11 +33,8 @@ class UserAvatar extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: showGradient && imageUrl == null
-              ? AppColors.primaryGradient
-              : null,
-          color: !showGradient && imageUrl == null
-              ? AppColors.surfaceLight
+          color: imageUrl == null
+              ? (showGradient ? AppColors.primary : AppColors.surfaceLight)
               : null,
           border: showBorder
               ? Border.all(
@@ -68,7 +65,7 @@ class UserAvatar extends StatelessWidget {
       child: Text(
         initials,
         style: TextStyle(
-          color: showGradient ? AppColors.background : AppColors.textPrimary,
+          color: imageUrl == null && showGradient ? Colors.white : AppColors.textPrimary,
           fontSize: size * 0.4,
           fontWeight: FontWeight.w600,
         ),

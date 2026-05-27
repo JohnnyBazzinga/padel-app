@@ -238,7 +238,6 @@ class _ProfileHeader extends StatelessWidget {
     return Padding(
       padding: AppSpacing.screenPadding,
       child: GradientCard(
-        gradient: AppColors.cardGradient,
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
@@ -246,7 +245,7 @@ class _ProfileHeader extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                color: AppColors.primary,
                 shape: BoxShape.circle,
                 boxShadow: AppDecorations.shadowGlow(AppColors.primary, intensity: 0.3),
               ),

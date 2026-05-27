@@ -85,7 +85,7 @@ class _RankingsScreenState extends State<RankingsScreen> with SingleTickerProvid
               child: TabBar(
                 controller: _tabController,
                 indicator: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
+                  color: AppColors.primary,
                   borderRadius: AppDecorations.borderRadiusFull,
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
@@ -155,7 +155,7 @@ class _MyRankingCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppColors.heroGradient,
+        color: AppColors.surface,
         borderRadius: AppDecorations.borderRadiusXl,
         boxShadow: AppDecorations.shadowGlow(AppColors.primary, intensity: 0.3),
       ),
@@ -168,10 +168,10 @@ class _MyRankingCard extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                    color: AppColors.surfaceBright,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: AppColors.glassBorder,
                     width: 2,
                   ),
                 ),
@@ -182,7 +182,7 @@ class _MyRankingCard extends StatelessWidget {
                       Text(
                         '#$position',
                         style: AppTypography.h2.copyWith(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ],
@@ -199,7 +199,7 @@ class _MyRankingCard extends StatelessWidget {
                     Text(
                       'A tua posição',
                       style: AppTypography.bodySmall.copyWith(
-                        color: Colors.white.withValues(alpha: 0.7),
+                          color: AppColors.textSecondary,
                       ),
                     ),
                     AppSpacing.verticalXs,
@@ -208,14 +208,14 @@ class _MyRankingCard extends StatelessWidget {
                         Text(
                           '$points',
                           style: AppTypography.statNumberLarge.copyWith(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           'pontos',
                           style: AppTypography.bodyMedium.copyWith(
-                            color: Colors.white.withValues(alpha: 0.7),
+                          color: AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -259,7 +259,7 @@ class _MyRankingCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: AppColors.surfaceBright,
               borderRadius: AppDecorations.borderRadiusMd,
             ),
             child: Row(
@@ -273,7 +273,7 @@ class _MyRankingCard extends StatelessWidget {
                 Container(
                   width: 1,
                   height: 30,
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: AppColors.surfaceBright,
                 ),
                 _StatItem(
                   label: 'Derrotas',
@@ -283,7 +283,7 @@ class _MyRankingCard extends StatelessWidget {
                 Container(
                   width: 1,
                   height: 30,
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: AppColors.surfaceBright,
                 ),
                 _StatItem(
                   label: 'Win Rate',
@@ -337,7 +337,7 @@ class _MyRankingCard extends StatelessWidget {
       case 'SILVER':
         return Colors.black87;
       default:
-        return Colors.white;
+        return AppColors.textPrimary;
     }
   }
 }
@@ -359,13 +359,13 @@ class _StatItem extends StatelessWidget {
       children: [
         Text(
           value,
-          style: AppTypography.h3.copyWith(color: Colors.white),
+          style: AppTypography.h3.copyWith(color: AppColors.textPrimary),
         ),
         AppSpacing.verticalXxs,
         Text(
           label,
           style: AppTypography.caption.copyWith(
-            color: Colors.white.withValues(alpha: 0.7),
+            color: AppColors.textSecondary,
           ),
         ),
       ],
@@ -452,7 +452,7 @@ class _RankingRow extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
+        color: AppColors.surface,
         borderRadius: AppDecorations.borderRadiusMd,
         border: isTop3
             ? Border.all(color: positionColor.withValues(alpha: 0.5), width: 1.5)

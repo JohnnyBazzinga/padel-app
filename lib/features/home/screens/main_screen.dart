@@ -66,23 +66,18 @@ class _InstagramBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: AppDecorations.borderRadiusXl,
           border: Border.all(color: AppColors.glassBorder, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 18,
-              offset: const Offset(0, 6),
-            ),
-          ],
+          boxShadow: AppDecorations.shadowSm,
         ),
         child: SafeArea(
           top: false,
+          bottom: false,
           child: Row(
             children: [
               Expanded(
@@ -157,11 +152,11 @@ class _InstagramNavItem extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
-        margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           borderRadius: AppDecorations.borderRadiusFull,
-          color: isSelected ? AppColors.primaryMuted : Colors.transparent,
+          color: isSelected ? AppColors.surfaceBright : Colors.transparent,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -175,7 +170,7 @@ class _InstagramNavItem extends StatelessWidget {
                 size: 22,
               ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 2),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: AppTypography.labelSmall.copyWith(
@@ -211,10 +206,10 @@ class _InstagramCenterNavItem extends StatelessWidget {
         duration: const Duration(milliseconds: 220),
         width: 56,
         height: 56,
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: AppColors.primaryGradient,
+          color: isSelected ? AppColors.primary : AppColors.textPrimary,
           boxShadow: AppDecorations.shadowGlow(
             AppColors.primary,
             intensity: isSelected ? 0.5 : 0.35,
@@ -222,7 +217,7 @@ class _InstagramCenterNavItem extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          color: AppColors.background,
+          color: Colors.white,
           size: 27,
         ),
       ),

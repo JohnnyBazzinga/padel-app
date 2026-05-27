@@ -38,9 +38,7 @@ class _TournamentDetailScreenState extends State<TournamentDetailScreen> {
           SliverCustomAppBar(
             title: tournament.name,
             background: Container(
-              decoration: const BoxDecoration(
-                gradient: AppColors.accentGradient,
-              ),
+              color: AppColors.accent,
               child: const Icon(
                 Icons.emoji_events,
                 size: 64,

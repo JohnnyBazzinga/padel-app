@@ -170,12 +170,7 @@ class RankBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.2),
-            color.withOpacity(0.1),
-          ],
-        ),
+        color: color.withOpacity(0.15),
         borderRadius: AppDecorations.borderRadiusFull,
         border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),

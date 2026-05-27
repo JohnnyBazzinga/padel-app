@@ -7,7 +7,6 @@ class QuickActionCard extends StatelessWidget {
   final String? subtitle;
   final VoidCallback? onTap;
   final Color? accentColor;
-  final LinearGradient? gradient;
 
   const QuickActionCard({
     super.key,
@@ -16,7 +15,6 @@ class QuickActionCard extends StatelessWidget {
     this.subtitle,
     this.onTap,
     this.accentColor,
-    this.gradient,
   });
 
   @override
@@ -26,7 +24,7 @@ class QuickActionCard extends StatelessWidget {
     return Container(
       width: 110,
       decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
+        color: AppColors.surface,
         borderRadius: AppDecorations.borderRadiusLg,
         border: Border.all(color: AppColors.glassBorder, width: 1),
       ),
@@ -44,15 +42,7 @@ class QuickActionCard extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    gradient: gradient ??
-                        LinearGradient(
-                          colors: [
-                            color.withOpacity(0.2),
-                            color.withOpacity(0.1),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                    color: color.withValues(alpha: 0.2),
                     borderRadius: AppDecorations.borderRadiusMd,
                   ),
                   child: Icon(

@@ -344,8 +344,7 @@ class _CityDiscoveryStrip extends StatelessWidget {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: isSelected ? null : AppColors.surface,
-                      gradient: isSelected ? AppColors.primaryGradient : null,
+                      color: isSelected ? AppColors.primary : AppColors.surface,
                       borderRadius: AppDecorations.borderRadiusFull,
                       border: Border.all(
                         color: isSelected ? Colors.transparent : AppColors.glassBorder,
@@ -521,8 +520,8 @@ class _NeedOneHeroCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.heroGradient,
+        decoration: BoxDecoration(
+            color: AppColors.surface,
             borderRadius: AppDecorations.borderRadiusXl,
             boxShadow: AppDecorations.shadowGlow(AppColors.primary, intensity: 0.25),
           ),
@@ -534,7 +533,7 @@ class _NeedOneHeroCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.18),
+                    color: AppColors.surfaceBright,
                     borderRadius: AppDecorations.borderRadiusFull,
                   ),
                   child: Row(
@@ -543,13 +542,13 @@ class _NeedOneHeroCard extends StatelessWidget {
                       const Icon(
                         Icons.sports_tennis_rounded,
                         size: 14,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                       ),
                       AppSpacing.horizontalSm,
                       Text(
                         'NEED 1 PLAYER NOW',
                         style: AppTypography.overline.copyWith(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -560,14 +559,14 @@ class _NeedOneHeroCard extends StatelessWidget {
                 Text(
                   match.displayLocation,
                   style: AppTypography.h2.copyWith(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 AppSpacing.verticalXs,
                 Text(
                   matchDateLabel,
                   style: AppTypography.bodyMedium.copyWith(
-                    color: Colors.white.withOpacity(0.85),
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 AppSpacing.verticalXl,
@@ -576,27 +575,27 @@ class _NeedOneHeroCard extends StatelessWidget {
                     _SpotPill(
                       icon: Icons.person_rounded,
                       label: '${match.currentPlayers}/${match.playersNeeded}',
-                      isLight: true,
+                      isLight: false,
                     ),
                     AppSpacing.horizontalSm,
                     _SpotPill(
                       icon: Icons.location_city_rounded,
                       label: match.city ?? match.club?.city ?? 'Online',
-                      isLight: true,
+                      isLight: false,
                     ),
                     const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: AppDecorations.borderRadiusMd,
-                      ),
-                      child: Text(
-                        'Entrar',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: AppDecorations.borderRadiusMd,
+                  ),
+                  child: Text(
+                    'Entrar',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.background,
+                      fontWeight: FontWeight.w700,
+                    ),
                       ),
                     ),
                   ],
@@ -629,17 +628,17 @@ class _SpotPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: isLight ? Colors.white.withOpacity(0.22) : AppColors.surfaceBright,
+        color: AppColors.surfaceBright,
         borderRadius: AppDecorations.borderRadiusFull,
       ),
       child: Row(
         children: [
-          Icon(icon, color: isLight ? Colors.white : AppColors.textSecondary, size: 14),
+          Icon(icon, color: AppColors.textSecondary, size: 14),
           AppSpacing.horizontalSm,
           Text(
             label,
             style: AppTypography.labelSmall.copyWith(
-              color: isLight ? Colors.white : AppColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -1241,7 +1240,7 @@ class _CommunityPromoBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: AppColors.accentGradient,
+          color: AppColors.accent,
           borderRadius: AppDecorations.borderRadiusXl,
           boxShadow: AppDecorations.shadowGlow(AppColors.accent, intensity: 0.2),
         ),
@@ -1250,13 +1249,13 @@ class _CommunityPromoBanner extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.background,
                 borderRadius: AppDecorations.borderRadiusMd,
               ),
               child: const Icon(
                 Icons.people_alt_rounded,
                 size: 28,
-                color: Colors.white,
+                color: AppColors.accent,
               ),
             ),
             AppSpacing.horizontalLg,
@@ -1267,14 +1266,14 @@ class _CommunityPromoBanner extends StatelessWidget {
                   Text(
                     'Convide a comunidade',
                     style: AppTypography.h3.copyWith(
-                      color: Colors.white,
+                      color: AppColors.background,
                     ),
                   ),
                   AppSpacing.verticalXs,
                   Text(
                     'Mostre os seus jogos, encontre parceiros e cresca com a app',
                     style: AppTypography.bodySmall.copyWith(
-                      color: Colors.white.withOpacity(0.86),
+                      color: AppColors.background.withOpacity(0.88),
                     ),
                   ),
                 ],
@@ -1283,7 +1282,7 @@ class _CommunityPromoBanner extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.background,
                 shape: BoxShape.circle,
               ),
               child: const Icon(

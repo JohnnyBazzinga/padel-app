@@ -25,7 +25,7 @@ class StatCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
+        color: AppColors.surface,
         borderRadius: AppDecorations.borderRadiusLg,
         border: Border.all(color: AppColors.glassBorder, width: 1),
       ),

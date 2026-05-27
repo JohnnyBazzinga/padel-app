@@ -189,21 +189,6 @@ class SliverCustomAppBar extends StatelessWidget {
               Positioned.fill(
                 child: background!,
               ),
-            if (showBottomGradient != false)
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      AppColors.background.withOpacity(0.45),
-                      AppColors.background,
-                    ],
-                    stops: const [0.0, 0.65, 1.0],
-                  ),
-                ),
-              ),
           ],
         ),
       ),

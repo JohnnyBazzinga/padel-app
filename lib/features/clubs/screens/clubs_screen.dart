@@ -226,7 +226,7 @@ class _ClubCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.listGap),
       decoration: BoxDecoration(
-        gradient: AppColors.cardGradient,
+        color: AppColors.surface,
         borderRadius: AppDecorations.borderRadiusLg,
         border: Border.all(color: AppColors.glassBorder),
       ),
@@ -266,23 +266,7 @@ class _ClubCard extends StatelessWidget {
                         : _buildPlaceholder(),
                   ),
                   // Gradient overlay
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(AppDecorations.radiusLg),
-                        ),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            AppColors.background.withValues(alpha: 0.7),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Overlay intentionally removed to avoid gradient fills
                   // Rating badge
                   Positioned(
                     top: 12,

@@ -57,48 +57,10 @@ class AppColors {
   static const Color platinum = Color(0xFF94A3B8);
   static const Color diamond = Color(0xFF38BDF8);
 
-  // Gradients
-  static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFFE1306C), Color(0xFFC13584)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient secondaryGradient = LinearGradient(
-    colors: [Color(0xFF833AB4), Color(0xFF5B51D8)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient accentGradient = LinearGradient(
-    colors: [Color(0xFFFCAF45), Color(0xFFF56040)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient cardGradient = LinearGradient(
-    colors: [surface, Colors.white],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient heroGradient = LinearGradient(
-    colors: [Color(0xFFFCAF45), Color(0xFFE1306C)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient darkOverlay = LinearGradient(
-    colors: [Colors.transparent, Color(0xFFFFFFFF)],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-  );
-
-  static const LinearGradient surfaceGradient = LinearGradient(
-    colors: [surfaceLight, surface],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  // Solid fill tokens (no visual gradients in the app)
+  static const Color heroBackground = Color(0xFFF7F8FB);
+  static const Color cardSurface = surface;
+  static const Color darkOverlaySurface = surface;
 
   // Status
   static const Color confirmed = success;

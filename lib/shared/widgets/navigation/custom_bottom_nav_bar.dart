@@ -16,8 +16,8 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppDecorations.borderRadiusXl,
@@ -26,6 +26,7 @@ class CustomBottomNavBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
+        bottom: false,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(items.length, (index) {
@@ -95,7 +96,7 @@ class _NavItem extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
           color: isActive ? AppColors.primaryMuted : Colors.transparent,
           borderRadius: AppDecorations.borderRadiusMd,
@@ -115,7 +116,7 @@ class _NavItem extends StatelessWidget {
                     size: 24,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   label,
                   style: AppTypography.labelSmall.copyWith(
@@ -169,14 +170,16 @@ class _CenterNavButton extends StatelessWidget {
       child: Container(
         width: 56,
         height: 56,
-        decoration: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-          shape: BoxShape.circle,
-          boxShadow: AppDecorations.shadowGlow(AppColors.primary),
-        ),
+          decoration: BoxDecoration(
+            color: isActive ? AppColors.primary : AppColors.textPrimary,
+            shape: BoxShape.circle,
+            boxShadow: AppDecorations.shadowGlow(
+              isActive ? AppColors.primary : AppColors.textPrimary,
+            ),
+          ),
         child: Icon(
           icon,
-          color: AppColors.background,
+          color: Colors.white,
           size: 28,
         ),
       ),

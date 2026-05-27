@@ -76,7 +76,7 @@ class AppDecorations {
       );
 
   static BoxDecoration get gradientCard => BoxDecoration(
-        gradient: AppColors.cardGradient,
+        color: AppColors.surface,
         borderRadius: borderRadiusLg,
         border: Border.all(color: AppColors.glassBorder, width: 1),
         boxShadow: shadowSm,
@@ -96,7 +96,7 @@ class AppDecorations {
 
   // Buttons
   static BoxDecoration get primaryButton => BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        color: AppColors.primary,
         borderRadius: borderRadiusMd,
         boxShadow: shadowGlow(AppColors.primary, intensity: 0.28),
       );
@@ -114,7 +114,7 @@ class AppDecorations {
       );
 
   static BoxDecoration get accentButton => BoxDecoration(
-        gradient: AppColors.accentGradient,
+        color: AppColors.accent,
         borderRadius: borderRadiusMd,
         boxShadow: shadowGlow(AppColors.accent),
       );
@@ -166,7 +166,7 @@ class AppDecorations {
 
   // Avatar
   static BoxDecoration avatarGradient({double size = 48}) => BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        color: AppColors.primary,
         shape: BoxShape.circle,
         boxShadow: shadowGlow(AppColors.primary, intensity: 0.22),
       );

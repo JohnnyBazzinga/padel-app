@@ -38,19 +38,10 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Background gradient
+          // Background tone
           Positioned.fill(
             child: Container(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.center,
-                  radius: 1.5,
-                  colors: [
-                    AppColors.primary.withOpacity(0.15),
-                    AppColors.background,
-                  ],
-                ),
-              ),
+              color: AppColors.background,
             ),
           ),
 
@@ -102,12 +93,7 @@ class _SplashScreenState extends State<SplashScreen> {
           height: 300,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                AppColors.primary.withOpacity(0.1),
-                Colors.transparent,
-              ],
-            ),
+            color: AppColors.primary.withOpacity(0.08),
           ),
         )
             .animate(onPlay: (controller) => controller.repeat())
@@ -133,12 +119,7 @@ class _SplashScreenState extends State<SplashScreen> {
           height: 400,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                AppColors.secondary.withOpacity(0.08),
-                Colors.transparent,
-              ],
-            ),
+            color: AppColors.secondary.withOpacity(0.06),
           ),
         )
             .animate(onPlay: (controller) => controller.repeat())

@@ -23,19 +23,13 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isEnabled = onPressed != null && !isLoading;
     final buttonContent = Container(
       height: height ?? 52,
       decoration: BoxDecoration(
-        gradient: onPressed != null && !isLoading
-            ? AppColors.primaryGradient
-            : LinearGradient(
-                colors: [
-                  AppColors.textMuted.withOpacity(0.3),
-                  AppColors.textMuted.withOpacity(0.2),
-                ],
-              ),
+        color: isEnabled ? AppColors.primary : AppColors.textMuted.withOpacity(0.3),
         borderRadius: AppDecorations.borderRadiusMd,
-        boxShadow: onPressed != null && !isLoading
+        boxShadow: isEnabled
             ? AppDecorations.shadowGlow(AppColors.primary)
             : null,
       ),
@@ -50,15 +44,15 @@ class PrimaryButton extends StatelessWidget {
               mainAxisSize: isExpanded ? MainAxisSize.max : MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (isLoading)
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: AppColors.background,
-                    ),
-                  )
+                  if (isLoading)
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: isEnabled ? AppColors.background : AppColors.textMuted,
+                      ),
+                    )
                 else ...[
                   if (icon != null) ...[
                     Icon(icon, color: AppColors.background, size: 20),
@@ -67,12 +61,16 @@ class PrimaryButton extends StatelessWidget {
                   Text(
                     label,
                     style: AppTypography.buttonText.copyWith(
-                      color: AppColors.background,
+                      color: isEnabled ? AppColors.background : AppColors.textMuted,
                     ),
                   ),
                   if (trailingIcon != null) ...[
                     AppSpacing.horizontalSm,
-                    Icon(trailingIcon, color: AppColors.background, size: 20),
+                    Icon(
+                      trailingIcon,
+                      color: isEnabled ? AppColors.background : AppColors.textMuted,
+                      size: 20,
+                    ),
                   ],
                 ],
               ],
