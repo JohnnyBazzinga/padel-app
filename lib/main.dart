@@ -9,12 +9,11 @@ import 'shared/providers/auth_provider.dart';
 import 'shared/providers/clubs_provider.dart';
 import 'shared/providers/bookings_provider.dart';
 import 'shared/providers/matches_provider.dart';
-import 'shared/providers/tournaments_provider.dart';
 import 'shared/providers/rankings_provider.dart';
 import 'shared/providers/chat_provider.dart';
-import 'shared/providers/friends_provider.dart';
 import 'shared/providers/notifications_provider.dart';
-import 'shared/providers/roles_provider.dart';
+import 'shared/providers/social_feed_provider.dart';
+import 'shared/providers/profile_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,12 +42,11 @@ class PadelApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ClubsProvider()),
         ChangeNotifierProvider(create: (_) => BookingsProvider()),
         ChangeNotifierProvider(create: (_) => MatchesProvider()),
-        ChangeNotifierProvider(create: (_) => TournamentsProvider()),
         ChangeNotifierProvider(create: (_) => RankingsProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
-        ChangeNotifierProvider(create: (_) => FriendsProvider()),
         ChangeNotifierProvider(create: (_) => NotificationsProvider()),
-        ChangeNotifierProvider(create: (_) => RolesProvider()),
+        ChangeNotifierProvider(create: (_) => SocialFeedProvider()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, auth, _) {

@@ -108,7 +108,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
       title: 'Sem conversas',
       message: 'Ainda não tens conversas. Começa a conversar com outros jogadores!',
       actionLabel: 'Encontrar Jogadores',
-      onAction: () => context.push('/friends'),
+      onAction: () => context.push('/search'),
     );
   }
 

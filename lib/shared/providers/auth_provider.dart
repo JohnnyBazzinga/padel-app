@@ -30,7 +30,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isOrganizer => AppRoles.isOrganizer(roles);
   bool get canCreateTournaments => AppRoles.canCreateTournaments(roles);
   bool get canInviteOrganizer => AppRoles.canInviteOrganizer(roles);
-  bool get canCreateMatches => AppRoles.canCreateMatches(roles);
+  bool get canCreateMatches => true;
 
   bool hasRole(String role) {
     return AppRoles.hasRole(roles, role);
@@ -147,14 +147,77 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> updateProfile(Map<String, dynamic> data) async {
-    try {
-      final response = await _api.patch('/users/me', data: data);
-      _user = User.fromJson(response.data['data']);
-      await _storage.saveUser(_user!.toJson());
-      notifyListeners();
-      return true;
-    } catch (e) {
-      return false;
+    final sanitizedData = _cleanProfilePayload(data);
+    final attempts = _buildUpdateProfileAttempts(sanitizedData);
+    for (final payload in attempts) {
+      try {
+        final response = await _api.patch('/users/me', data: payload);
+        _user = User.fromJson(response.data['data']);
+        await _storage.saveUser(_user!.toJson());
+        notifyListeners();
+        return true;
+      } catch (e) {
+        // Try next payload variant for compatibility.
+      }
     }
+    return false;
+  }
+
+  List<Map<String, dynamic>> _buildUpdateProfileAttempts(Map<String, dynamic> data) {
+    final base = Map<String, dynamic>.from(data);
+    final status = base['availabilityStatus'];
+    if (status == null) return [base];
+
+    final String? parsedStatus = status.toString();
+    final statusPayload = Map<String, dynamic>.from(base)
+      ..remove('status')
+      ..remove('availability')
+      ..['availabilityStatus'] = parsedStatus;
+
+    final aliasStatusPayload = Map<String, dynamic>.from(base)
+      ..remove('availabilityStatus')
+      ..remove('availability')
+      ..['status'] = parsedStatus;
+
+    final aliasAvailabilityPayload = Map<String, dynamic>.from(base)
+      ..remove('availabilityStatus')
+      ..remove('status')
+      ..['availability'] = parsedStatus;
+
+    return _dedupePayloadAttempts([
+      base,
+      statusPayload,
+      aliasStatusPayload,
+      aliasAvailabilityPayload,
+    ]);
+  }
+
+  List<Map<String, dynamic>> _dedupePayloadAttempts(List<Map<String, dynamic>> attempts) {
+    final deduped = <Map<String, dynamic>>[];
+    for (final attempt in attempts) {
+      final isDuplicate = deduped.any((existing) => _payloadsEqual(existing, attempt));
+      if (!isDuplicate) {
+        deduped.add(attempt);
+      }
+    }
+    return deduped;
+  }
+
+  bool _payloadsEqual(Map<String, dynamic> a, Map<String, dynamic> b) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (!b.containsKey(entry.key) || b[entry.key] != entry.value) return false;
+    }
+    return true;
+  }
+
+  Map<String, dynamic> _cleanProfilePayload(Map<String, dynamic> data) {
+    final cleaned = <String, dynamic>{};
+    data.forEach((key, value) {
+      if (value != null) {
+        cleaned[key] = value;
+      }
+    });
+    return cleaned;
   }
 }

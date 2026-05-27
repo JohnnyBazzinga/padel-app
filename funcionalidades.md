@@ -1,109 +1,129 @@
-Projecto Padel
+Projecto Padel FY
 
-Resumo:
-•	App de padel que ligue a componente social do padel à marcação de jogos onde o espírito social e desportivo esteja alinhado.
-•	Permita criar uma comunidade de jogadores e jogos (masculinos, femininos e mistos) espalhados pelo mundo inteiro.
-Exemplo: um jogador em madrid conseguir reunir outros 3 jogadores no mesmo sitio, de nível semelhante e num clube perto de si, num horário definido. Pode ser um push da aplicação caso verifique que geograficamente os jogadores estao naquela zona ou os jogadores podem entrar por opção, baseando o critério de pesquisa de jogos em aberto por zona, horario e nível também.
-O mesmo será válido para Portugal como é óbvio. Temos de perceber quantas apps de gestao dos clubes existem no mercado e na segunda fase é marcar jogos de forma directa nas apps dos clubes via a nossa App.
-•	Look and feel como Instagram, imagem clara, onde de para postar fotos e comentários.
-•	Seja possivel para mensagens entre utilizadores
-•	Todos os jogadores são públicos em relação à comunidade
-•	Zona de anúncios para vendedores de marcas de padel
-•	Zona de venda de material usado (seja roupa, tenis ou raquetes)
-•	Zona para os professores de padel poderem vender aulas em pack ou individuais
-•	Clubes podem promover happy hours junto da app (preços mais baixos durante alguns horários)
-•	Ranking de jogadores opcional, resultados dos jogos opcional
+Objetivo v5: app social + gestão de jogos de padel com foco em descoberta local e confiança.
 
-Feature principal
-“Need 1 player now”
-Tipo:
-•	Lisboa
-•	Madrid
-•	Dubai
-•	São Paulo
-E aparecer:
-•	nível
-•	idade opcional
-•	competitivo/social
-•	indoor/outdoor
-•	idioma
+## Como vamos usar este documento
 
-Features CRÍTICAS
-✔ Skill level inteligente
-Não uses só:
-•	beginner níveis 6 e 5/intermediate níveis 4 e 3 /advanced níveis 2 e 1
-Faz:
-•	auto-rating
-•	ELO style
-•	ranking dinâmico
-Porque no padel:
-:warning: mismatch de nível mata jogos.
-________________________________________
-✔ Matchmaking automático
-Exemplo:
-•	“Tenho 2 jogadores”
-•	“faltam 2”
-•	a app sugere automaticamente
-O verdadeiro “hack” de crescimento
-O teu crescimento provavelmente vem de:
-:earth_africa: Viagem
-“Estou em Barcelona 3 dias e quero jogar.”
-Esse é o momento de maior dor.
-________________________________________
-:pushpin: O que falta hoje no mercado
-Apps atuais:
-•	Playtomic → muito clube/reserva
-•	Padel Mates → limitado socialmente
-•	grupos WhatsApp → caos
-Ninguém resolveu bem:
-:white_check_mark: discovery global
-:white_check_mark: trust social
-:white_check_mark: fill missing players instantly
-________________________________________
-:brain: O que eu adicionaria cedo
-:fire: “Player reputation”
-Depois do jogo:
-•	pontualidade
-•	fair play
-•	nível real
-•	sociabilidade
-Isso cria confiança.
-________________________________________
-:moneybag: Modelo negócio provável
-:one: Freemium
-Gratis:
-•	criar jogos
-•	juntar jogos
-Premium:
-•	destaque
-•	filtros avançados
-•	estatísticas
-•	matchmaking prioritário
-________________________________________
-:two: Clube/parcerias
-Mais tarde:
-•	fee reservas
-•	publicidade clubes
-•	torneios
-________________________________________
-:warning: O maior risco da app
-Liquidez local.
-Toda app social/location:
-:point_right: precisa massa crítica por cidade.
-Então eu começava:
-•	Lisboa
-•	Porto
-•	Madrid
-•	Barcelona
-•	Dubai
-Não “global” logo.
-________________________________________
-:pushpin: Nome/importância branding
-•  nome MUITO simples
-•  internacional
-•  fácil pronunciar
+- ✅ Implementado
+- 🟨 Parcial (funciona, mas com limitações técnicas a fechar)
+- ⛔ Não implementado
 
-Sugestão: Padel For you – Padel FY parece me porreiro Joao. 
+## Funcionalidades funcionais do documento
 
- 
+1. Comunidade + feed tipo Instagram
 
+- ✅ `Feed social com cards de publicações`
+- ✅ `Like` e `comentário` no post
+- ✅ `scroll` com paginação no feed
+- ✅ `Filtro por cidade` e estado (status)
+- 🟨 `Publicação de media` (até 3 imagens)  
+  - Implementado via URLs de imagem, ainda sem upload/file picker oficial
+- ✅ `Estado/Stories` (A jogar, A procurar parceiro, Offline)  
+  - Implementado com estado de utilizador persistente (`availabilityStatus`) e compatibilidade com aliases de API (`status`, `availability`, `state`)
+- ðŸŸ¨ `follow` entre utilizadores (UI e toggle implementados no feed; contrato backend final ainda a fechar)
+- 🟨 `Perfil do autor` ao tocar no post  
+  - abre `/profile` atual do utilizador, sem navegação por perfil público ainda
+
+2. Matchmaking e “Need 1 player now”
+
+- ✅ `Endpoint suggest`
+  - `/match-making/suggest` consumido em `MatchesProvider.fetchMatchSuggestions`
+- ✅ `Fluxo automático fill`
+  - `/match-making/create-fill` consumido em `MatchesProvider.createAutoFill`
+- ✅ `Cidades iniciais`  
+  - Lisboa, Madrid, São Paulo, Barcelona, Dubai
+- ✅ `Filtro inicial por cidade e nível/slots`
+- 🟨 `match confiante por critérios avançados`  
+  - confiança já exibida (campo `confidence`) mas sem motor de ranking/heurística avançado documentado
+- 🟨 `Prioridade premium`
+  - existe parâmetro `premium`, ainda sem feature flag/tiers no produto
+
+3. Ranking + reputação
+
+- ✅ `Ranking global` (`/rankings`)
+- ✅ `Ranking ELO` (`/rankings/elo`)
+- ✅ Exibição de reputação no ranking e match card
+- ✅ `Mini feedback pós-jogo` (pontualidade, fair play, social)
+  - popup obrigatório após score quando ainda não enviado
+- 🟨 `Cálculo de ELO/reputação`
+  - consumo de campos da API e UI pronto, sem confirmação de regra final de backend no app
+
+4. Perfil / confiança social
+
+- ✅ `Indicador de reputação` no perfil
+- ✅ `badges` e contagem de votos (`votos`) no perfil
+- ✅ `Badges` de reputação também em ranking e detalhe de partida
+
+5. UI / navegação estilo Instagram
+
+- ✅ `Bottom nav` com 5 abas: Feed, Buscar, Partidas, Notificações, Perfil
+- ✅ `Estado de navegação` central via `MainScreen`
+- ✅ Navegação consolidada em rotas Shell (`/home`, `/search`, `/matches`, `/notifications`, `/profile`)
+- 🟨 `Tema sólido` aplicado, mas ainda com pequenos defaults de espaçamento a revisar por consistência
+
+6. Motor de negócio / mercado
+
+- ⛔ `Anúncios (clubes/marcas)`
+- ⛔ `Venda/compra de material usado`
+- ⛔ `Aulas de treinador`
+- ⛔ `Promoções / happy hours`
+
+7. Funcionalidades de base
+
+- ✅ Registo/login, autenticação e perfil
+- ✅ Clubes/campos + booking
+- ✅ Chat
+- ✅ Amizades básicas (funcionalidade ativa no projeto)
+- ✅ Torneios
+- ✅ Histórico de partidas
+
+## Decisão de simplificação (fase atual)
+
+- Remover de momento:
+  - implementação de follow de rede social completa
+  - upload de ficheiros de imagem sofisticado (mantemos URL até fechar infraestrutura backend)
+  - gamificação avançada fora do scope inicial
+- Preservar para fase 2:
+  - ads, material usado, coaches e promoções
+
+## Próximo passo (próxima sprint)
+
+- Fechar a camada técnica de `Reputação`:
+  - padronizar contrato backend de feedback e atualizar agregados (skill signal, confiança, trust score)
+- Ativar feed de media com upload real (múltiplo até 3)
+- Definir se `match fill` mantém prioridade premium ou passa para ranking único
+- Documentar contratos `POST`/`GET` faltantes no backend (ads, gear, coaches, promotions)
+
+## Referência rápida (implementado no código)
+
+- `features/home/screens/social_feed_screen.dart`
+- `shared/providers/social_feed_provider.dart`
+- `shared/models/social_post.dart`
+- `features/need_one/screens/need_one_screen.dart`
+- `shared/providers/matches_provider.dart`
+- `features/matches/screens/match_detail_screen.dart`
+- `features/rankings/screens/rankings_screen.dart`
+- `shared/providers/rankings_provider.dart`
+- `shared/models/user_model.dart`
+- `features/profile/screens/profile_screen.dart`
+- `features/home/screens/main_screen.dart`
+- `core/navigation/app_router.dart`
+- `main.dart`
+
+## Documento técnico complementar
+
+- Ver: `docs/estado_implementacao.md`
+
+
+
+## Atualização de registo
+- Perfil do autor no feed: Social Feed -> Profile agora abre /profile/{id} com vista pública do autor quando disponível.
+
+
+## 2. Comunity and social network backend alignment (27/05/2026)
+- Follow backend now fully implemented:
+  - Endpoints /users/{id}/follow, /users/{id}/unfollow, /users/{id}/follow-toggle.
+  - Post social endpoints /posts, /posts/feed, /posts/{id}/like, /posts/{id}/comment.
+  - Prisma entities added: Post, PostMedia, PostLike, PostComment, UserFollow.
+- Next item status changed:
+  - Follow can now persist and toggle in backend, not only UI.

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../shared/models/user_model.dart';
 import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/widgets/widgets.dart';
 
@@ -20,9 +21,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _cityController;
   late TextEditingController _bioController;
   late String _skillLevel;
+  late String _availabilityStatus;
   bool _isLoading = false;
 
   final _levels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'PROFESSIONAL'];
+  final _availabilityOptions = const [
+    _AvailabilityOption(value: '', label: 'Não definir'),
+    _AvailabilityOption(value: 'a_jogar', label: 'A Jogar'),
+    _AvailabilityOption(value: 'a_procurar_parceiro', label: 'A Procurar Parceiro'),
+    _AvailabilityOption(value: 'offline', label: 'Offline'),
+  ];
 
   @override
   void initState() {
@@ -33,6 +41,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _cityController = TextEditingController(text: user?.city);
     _bioController = TextEditingController(text: user?.bio);
     _skillLevel = user?.skillLevel ?? 'BEGINNER';
+    _availabilityStatus = canonicalAvailabilityStatus(user?.availabilityStatus) ?? '';
   }
 
   @override
@@ -48,13 +57,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    final success = await context.read<AuthProvider>().updateProfile({
+
+    final payload = <String, dynamic>{
       'firstName': _firstNameController.text.trim(),
       'lastName': _lastNameController.text.trim(),
       'city': _cityController.text.trim(),
       'bio': _bioController.text.trim(),
       'skillLevel': _skillLevel,
-    });
+    };
+
+    if (_availabilityStatus.isNotEmpty) {
+      payload['availabilityStatus'] = _availabilityStatus;
+    }
+
+    final success = await context.read<AuthProvider>().updateProfile(payload);
     setState(() => _isLoading = false);
 
     if (!mounted) return;
@@ -128,6 +144,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   _levels.map((l) => DropdownMenuItem(value: l, child: Text(l))).toList(),
               onChanged: (v) => setState(() => _skillLevel = v!),
             ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _availabilityStatus,
+              decoration: const InputDecoration(
+                labelText: 'Estado social',
+                prefixIcon: Icon(Icons.circle_notifications_rounded),
+              ),
+              items: _availabilityOptions
+                  .map((option) => DropdownMenuItem(
+                        value: option.value,
+                        child: Text(option.label),
+                      ))
+                  .toList(),
+              onChanged: (v) => setState(() => _availabilityStatus = v ?? ''),
+            ),
             const SizedBox(height: 28),
             PrimaryButton(
               label: 'Guardar',
@@ -139,4 +170,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
   }
+}
+
+class _AvailabilityOption {
+  final String value;
+  final String label;
+
+  const _AvailabilityOption({required this.value, required this.label});
 }

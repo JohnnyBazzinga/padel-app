@@ -1,11 +1,13 @@
 import 'package:go_router/go_router.dart';
 
 import '../../shared/providers/auth_provider.dart';
+import '../../shared/models/social_post.dart';
 import '../../features/auth/screens/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
-import '../../features/home/screens/home_screen.dart';
 import '../../features/home/screens/main_screen.dart';
+import '../../features/home/screens/social_feed_screen.dart';
+import '../../features/search/screens/search_screen.dart';
 import '../../features/clubs/screens/clubs_screen.dart';
 import '../../features/clubs/screens/club_detail_screen.dart';
 import '../../features/bookings/screens/booking_screen.dart';
@@ -13,16 +15,13 @@ import '../../features/bookings/screens/my_bookings_screen.dart';
 import '../../features/matches/screens/matches_screen.dart';
 import '../../features/matches/screens/match_detail_screen.dart';
 import '../../features/matches/screens/create_match_screen.dart';
-import '../../features/tournaments/screens/tournaments_screen.dart';
-import '../../features/tournaments/screens/tournament_detail_screen.dart';
-import '../../features/tournaments/screens/create_tournament_screen.dart';
 import '../../features/rankings/screens/rankings_screen.dart';
 import '../../features/chat/screens/conversations_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/edit_profile_screen.dart';
-import '../../features/friends/screens/friends_screen.dart';
-import '../../features/admin/screens/admin_invites_screen.dart';
+import '../../features/notifications/screens/notifications_screen.dart';
+import '../../features/need_one/screens/need_one_screen.dart';
 
 class AppRouter {
   static GoRouter router(AuthProvider auth) {
@@ -35,23 +34,15 @@ class AppRouter {
         final isAuthRoute = state.matchedLocation == '/login' ||
             state.matchedLocation == '/register' ||
             state.matchedLocation == '/';
-        final isInviteRoute = state.matchedLocation == '/roles/invitations';
         final isCreateMatchRoute = state.matchedLocation == '/create-match';
-        final isAdminArea = state.matchedLocation.startsWith('/admin');
-        final isTournamentCreatorRoute = state.matchedLocation == '/tournaments/create';
 
         return AppRouteGuard.resolve(
           isLoading: isLoading,
           isLoggedIn: isLoggedIn,
           isAuthRoute: isAuthRoute,
-          isInviteRoute: isInviteRoute,
           location: state.matchedLocation,
-          isAdminArea: isAdminArea,
           isCreateMatchRoute: isCreateMatchRoute,
-          isTournamentCreatorRoute: isTournamentCreatorRoute,
-          canAccessAdminArea: auth.canAccessAdminArea,
           canCreateMatches: auth.canCreateMatches,
-          canCreateTournaments: auth.canCreateTournaments,
         );
       },
       routes: [
@@ -72,23 +63,43 @@ class AppRouter {
           routes: [
             GoRoute(
               path: '/home',
-              builder: (context, state) => const HomeScreen(),
+              builder: (context, state) => const SocialFeedScreen(),
             ),
             GoRoute(
-              path: '/clubs',
-              builder: (context, state) => const ClubsScreen(),
+              path: '/search',
+              builder: (context, state) => const SearchScreen(),
             ),
             GoRoute(
               path: '/matches',
               builder: (context, state) => const MatchesScreen(),
             ),
             GoRoute(
-              path: '/rankings',
-              builder: (context, state) => const RankingsScreen(),
+              path: '/notifications',
+              builder: (context, state) => const NotificationsScreen(),
             ),
             GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
+            ),
+            GoRoute(
+              path: '/profile/:userId',
+              builder: (context, state) => ProfileScreen(
+                profileUserId: state.pathParameters['userId'],
+                previewAuthor:
+                    state.extra is PostAuthor ? state.extra as PostAuthor : null,
+              ),
+            ),
+            GoRoute(
+              path: '/need-1',
+              builder: (context, state) => const NeedOneScreen(),
+            ),
+            GoRoute(
+              path: '/clubs',
+              builder: (context, state) => const ClubsScreen(),
+            ),
+            GoRoute(
+              path: '/rankings',
+              builder: (context, state) => const RankingsScreen(),
             ),
           ],
         ),
@@ -120,33 +131,6 @@ class AppRouter {
           builder: (context, state) => const CreateMatchScreen(),
         ),
         GoRoute(
-          path: '/tournaments',
-          builder: (context, state) => const TournamentsScreen(),
-        ),
-        GoRoute(
-          path: '/tournaments/:id',
-          builder: (context, state) => TournamentDetailScreen(
-            tournamentId: state.pathParameters['id']!,
-          ),
-        ),
-        GoRoute(
-          path: '/tournaments/create',
-          builder: (context, state) => const CreateTournamentScreen(),
-        ),
-        GoRoute(
-          path: '/admin/invite-organizer',
-          builder: (context, state) => const AdminInvitesScreen(),
-        ),
-        GoRoute(
-          path: '/roles/invitations',
-          builder: (context, state) => AdminInvitesScreen(
-            invitationToken:
-                state.uri.queryParameters['token'] ??
-                state.uri.queryParameters['invitation'],
-            note: state.uri.queryParameters['note'],
-          ),
-        ),
-        GoRoute(
           path: '/chat',
           builder: (context, state) => const ConversationsScreen(),
         ),
@@ -160,10 +144,6 @@ class AppRouter {
           path: '/edit-profile',
           builder: (context, state) => const EditProfileScreen(),
         ),
-        GoRoute(
-          path: '/friends',
-          builder: (context, state) => const FriendsScreen(),
-        ),
       ],
     );
   }
@@ -174,18 +154,13 @@ class AppRouteGuard {
     required bool isLoading,
     required bool isLoggedIn,
     required bool isAuthRoute,
-    required bool isInviteRoute,
     required String location,
-    required bool isAdminArea,
     required bool isCreateMatchRoute,
-    required bool isTournamentCreatorRoute,
-    required bool canAccessAdminArea,
     required bool canCreateMatches,
-    required bool canCreateTournaments,
   }) {
     if (isLoading) return null;
 
-    if (!isLoggedIn && !isAuthRoute && !isInviteRoute) {
+    if (!isLoggedIn && !isAuthRoute) {
       return '/login';
     }
 
@@ -193,16 +168,8 @@ class AppRouteGuard {
       return '/home';
     }
 
-    if (isAdminArea && !canAccessAdminArea) {
-      return '/home';
-    }
-
     if (isCreateMatchRoute && !canCreateMatches) {
       return '/matches';
-    }
-
-    if (isTournamentCreatorRoute && !canCreateTournaments) {
-      return '/tournaments';
     }
 
     return null;

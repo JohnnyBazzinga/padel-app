@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/api/api_client.dart';
 
 class AppNotification {
@@ -39,10 +40,31 @@ class AppNotification {
       type: json['type']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
       message: json['message']?.toString() ?? '',
-      data: json['data'],
+      data: json['data'] is Map<String, dynamic> ? json['data'] : null,
       isRead: parseBool(json['isRead'], false),
-      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+      createdAt:
+          DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+
+  AppNotification copyWith({
+    bool? isRead,
+    String? id,
+    String? type,
+    String? title,
+    String? message,
+    Map<String, dynamic>? data,
+    DateTime? createdAt,
+  }) {
+    return AppNotification(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      data: data ?? this.data,
+      isRead: isRead ?? this.isRead,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }
@@ -67,13 +89,12 @@ class NotificationsProvider extends ChangeNotifier {
 
     try {
       final response = await _api.get('/notifications');
-      _notifications = (response.data['data']['data'] as List)
-          .map((n) => AppNotification.fromJson(n))
-          .toList();
-      _unreadCount =
-          _extractUnreadCount(response.data['data']['meta']?['unreadCount']);
+      final payload = _unwrapPayload(response.data);
+      final list = _extractList(payload);
+      _notifications = list.map(AppNotification.fromJson).toList();
+      _unreadCount = _extractUnreadCount(payload);
     } catch (e) {
-      _error = 'Erro ao carregar notificações';
+      _error = 'Erro ao carregar notificaÃ§Ãµes';
     }
 
     _isLoading = false;
@@ -90,17 +111,12 @@ class NotificationsProvider extends ChangeNotifier {
     }
   }
 
-  int _extractUnreadCount(dynamic value) {
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
-  }
-
   Future<void> markAsRead(String id) async {
     try {
       await _api.post('/notifications/$id/read');
       final index = _notifications.indexWhere((n) => n.id == id);
       if (index != -1 && !_notifications[index].isRead) {
+        _notifications[index] = _notifications[index].copyWith(isRead: true);
         _unreadCount = (_unreadCount - 1).clamp(0, _unreadCount);
       }
       notifyListeners();
@@ -112,10 +128,57 @@ class NotificationsProvider extends ChangeNotifier {
   Future<void> markAllAsRead() async {
     try {
       await _api.post('/notifications/read-all');
+      _notifications = _notifications
+          .map((notification) => notification.copyWith(isRead: true))
+          .toList();
       _unreadCount = 0;
       notifyListeners();
     } catch (e) {
       // Ignore
     }
   }
+
+  dynamic _unwrapPayload(dynamic data) {
+    if (data == null) return null;
+    if (data is Map<String, dynamic>) {
+      final nested = data['data'];
+      return nested ?? data;
+    }
+    return data;
+  }
+
+  List<Map<String, dynamic>> _extractList(dynamic data) {
+    if (data == null) return [];
+    if (data is List) return data.whereType<Map<String, dynamic>>().toList();
+
+    if (data is Map<String, dynamic>) {
+      final nested = data['data'];
+      if (nested is List) return nested.whereType<Map<String, dynamic>>().toList();
+      if (nested is Map<String, dynamic>) {
+        final inner = nested['data'];
+        if (inner is List) return inner.whereType<Map<String, dynamic>>().toList();
+      }
+    }
+    return [];
+  }
+
+  int _extractUnreadCount(dynamic value) {
+    if (value == null) return 0;
+
+    if (value is Map<String, dynamic>) {
+      if (value['unreadCount'] != null) {
+        return _extractUnreadCount(value['unreadCount']);
+      }
+      final meta = value['meta'];
+      if (meta is Map<String, dynamic> && meta['unreadCount'] != null) {
+        return _extractUnreadCount(meta['unreadCount']);
+      }
+    }
+
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
 }
+

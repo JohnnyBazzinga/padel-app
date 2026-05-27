@@ -8,14 +8,9 @@ void main() {
         isLoading: true,
         isLoggedIn: false,
         isAuthRoute: false,
-        isInviteRoute: false,
         location: '/home',
-        isAdminArea: false,
         isCreateMatchRoute: false,
-        isTournamentCreatorRoute: false,
-        canAccessAdminArea: false,
         canCreateMatches: false,
-        canCreateTournaments: false,
       );
 
       expect(redirect, isNull);
@@ -26,14 +21,9 @@ void main() {
         isLoading: false,
         isLoggedIn: false,
         isAuthRoute: false,
-        isInviteRoute: false,
         location: '/matches',
-        isAdminArea: false,
         isCreateMatchRoute: false,
-        isTournamentCreatorRoute: false,
-        canAccessAdminArea: false,
         canCreateMatches: false,
-        canCreateTournaments: false,
       );
 
       expect(redirect, '/login');
@@ -44,14 +34,9 @@ void main() {
         isLoading: false,
         isLoggedIn: false,
         isAuthRoute: false,
-        isInviteRoute: true,
         location: '/roles/invitations',
-        isAdminArea: false,
         isCreateMatchRoute: false,
-        isTournamentCreatorRoute: false,
-        canAccessAdminArea: false,
         canCreateMatches: false,
-        canCreateTournaments: false,
       );
 
       expect(redirect, isNull);
@@ -62,14 +47,9 @@ void main() {
         isLoading: false,
         isLoggedIn: true,
         isAuthRoute: true,
-        isInviteRoute: false,
         location: '/login',
-        isAdminArea: false,
         isCreateMatchRoute: false,
-        isTournamentCreatorRoute: false,
-        canAccessAdminArea: false,
         canCreateMatches: false,
-        canCreateTournaments: false,
       );
 
       expect(redirect, '/home');
@@ -80,14 +60,9 @@ void main() {
         isLoading: false,
         isLoggedIn: true,
         isAuthRoute: false,
-        isInviteRoute: false,
         location: '/admin/invite-organizer',
-        isAdminArea: true,
         isCreateMatchRoute: false,
-        isTournamentCreatorRoute: false,
-        canAccessAdminArea: false,
         canCreateMatches: false,
-        canCreateTournaments: false,
       );
 
       expect(redirect, '/home');
@@ -98,14 +73,9 @@ void main() {
         isLoading: false,
         isLoggedIn: true,
         isAuthRoute: false,
-        isInviteRoute: false,
         location: '/admin/invite-organizer',
-        isAdminArea: true,
         isCreateMatchRoute: false,
-        isTournamentCreatorRoute: false,
-        canAccessAdminArea: true,
         canCreateMatches: false,
-        canCreateTournaments: false,
       );
 
       expect(redirect, isNull);
@@ -116,14 +86,9 @@ void main() {
         isLoading: false,
         isLoggedIn: true,
         isAuthRoute: false,
-        isInviteRoute: false,
         location: '/create-match',
-        isAdminArea: false,
         isCreateMatchRoute: true,
-        isTournamentCreatorRoute: false,
-        canAccessAdminArea: false,
         canCreateMatches: false,
-        canCreateTournaments: false,
       );
 
       expect(redirect, '/matches');
@@ -134,14 +99,9 @@ void main() {
         isLoading: false,
         isLoggedIn: true,
         isAuthRoute: false,
-        isInviteRoute: false,
         location: '/create-match',
-        isAdminArea: false,
         isCreateMatchRoute: true,
-        isTournamentCreatorRoute: false,
-        canAccessAdminArea: false,
         canCreateMatches: true,
-        canCreateTournaments: false,
       );
 
       expect(redirect, isNull);
@@ -152,14 +112,9 @@ void main() {
         isLoading: false,
         isLoggedIn: true,
         isAuthRoute: false,
-        isInviteRoute: false,
         location: '/tournaments/create',
-        isAdminArea: false,
         isCreateMatchRoute: false,
-        isTournamentCreatorRoute: true,
-        canAccessAdminArea: false,
         canCreateMatches: false,
-        canCreateTournaments: false,
       );
 
       expect(redirect, '/tournaments');

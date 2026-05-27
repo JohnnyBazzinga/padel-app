@@ -18,6 +18,8 @@ class MatchDetailScreen extends StatefulWidget {
 }
 
 class _MatchDetailScreenState extends State<MatchDetailScreen> {
+  String? _autoFeedbackPromptedMatchId;
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +31,8 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
     final provider = context.watch<MatchesProvider>();
     final auth = context.watch<AuthProvider>();
     final match = provider.selectedMatch;
+    final hasFeedbackSubmitted =
+        match != null ? provider.hasMatchFeedbackSubmitted(match.id) : false;
 
     if (provider.isLoading || match == null) {
       return Scaffold(
@@ -40,7 +44,27 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
     }
 
     final isParticipant = match.players.any((p) => p.userId == auth.user?.id);
-    final isOrganizer = match.players.any((p) => p.userId == auth.user?.id && p.isOrganizer);
+    final isOrganizer =
+        match.players.any((p) => p.userId == auth.user?.id && p.isOrganizer);
+
+    if (match.score != null && isParticipant && !hasFeedbackSubmitted) {
+      if (_autoFeedbackPromptedMatchId != match.id) {
+        _autoFeedbackPromptedMatchId = match.id;
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) return;
+          if (!provider.hasMatchFeedbackSubmitted(match.id)) {
+            await _showMatchFeedbackSheet(
+              context,
+              provider,
+              match,
+              isRequired: true,
+            );
+          }
+        });
+      }
+    } else if (match.score == null) {
+      _autoFeedbackPromptedMatchId = null;
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -67,6 +91,25 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
                 icon: Icons.edit_outlined,
                 variant: AppIconButtonVariant.glass,
                 onPressed: () {},
+              ),
+            ),
+          if (isOrganizer && match.status != 'COMPLETED' && match.score == null)
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: AppIconButton(
+                icon: Icons.scoreboard_rounded,
+                variant: AppIconButtonVariant.glass,
+                onPressed: () => _showScoreSheet(context, provider, match),
+              ),
+            ),
+          if (match.score != null && isParticipant && !hasFeedbackSubmitted)
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: AppIconButton(
+                icon: Icons.rate_review_rounded,
+                variant: AppIconButtonVariant.glass,
+                onPressed: () =>
+                    _showMatchFeedbackSheet(context, provider, match),
               ),
             ),
           Padding(
@@ -138,12 +181,11 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
         match: match,
         isParticipant: isParticipant,
         isOrganizer: isOrganizer,
+        feedbackSubmitted: hasFeedbackSubmitted,
         onJoin: () => provider.joinMatch(widget.matchId),
         onLeave: () => provider.leaveMatch(widget.matchId),
-        onCancel: () async {
-          await provider.cancelMatch(widget.matchId);
-          if (mounted) Navigator.pop(context);
-        },
+        onComplete: () => _showScoreSheet(context, provider, match),
+        onFeedback: () => _showMatchFeedbackSheet(context, provider, match),
       ),
     );
   }
@@ -181,7 +223,8 @@ class _HeroHeader extends StatelessWidget {
                 // Status badge
                 if (match.isFull)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.warning,
                       borderRadius: AppDecorations.borderRadiusFull,
@@ -196,7 +239,8 @@ class _HeroHeader extends StatelessWidget {
                   )
                 else
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.success,
                       borderRadius: AppDecorations.borderRadiusFull,
@@ -232,9 +276,7 @@ class _HeroHeader extends StatelessWidget {
           ),
         ],
       ),
-    )
-        .animate()
-        .fadeIn(duration: 400.ms);
+    ).animate().fadeIn(duration: 400.ms);
   }
 }
 
@@ -452,7 +494,8 @@ class _TeamSection extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.accent,
                   shape: BoxShape.circle,
-                  boxShadow: AppDecorations.shadowGlow(AppColors.accent, intensity: 0.3),
+                  boxShadow: AppDecorations.shadowGlow(AppColors.accent,
+                      intensity: 0.3),
                 ),
                 child: Center(
                   child: Text(
@@ -477,7 +520,6 @@ class _TeamSection extends StatelessWidget {
             ],
           ),
         ),
-
         if (unassigned.isNotEmpty) ...[
           AppSpacing.verticalLg,
           Text(
@@ -526,6 +568,7 @@ class _TeamColumn extends StatelessWidget {
         ...List.generate(maxPlayers, (index) {
           if (index < players.length) {
             final player = players[index];
+            final playerReputation = player.user;
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Column(
@@ -537,11 +580,36 @@ class _TeamColumn extends StatelessWidget {
                   ),
                   AppSpacing.verticalXs,
                   Text(
-                    player.user?.firstName ?? 'Jogador',
+                    player.user?.fullName ??
+                        player.user?.firstName ??
+                        'Jogador',
                     style: AppTypography.labelSmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (playerReputation != null &&
+                      (playerReputation.reputationSignals > 0 ||
+                          playerReputation.reputationScore > 0))
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.verified_rounded,
+                            color: AppColors.info,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${playerReputation.reputationText} • ${playerReputation.reputationSignals} votos',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             );
@@ -596,7 +664,9 @@ class _PlayersSection extends StatelessWidget {
       children: [
         SectionHeader(title: 'Jogadores'),
         AppSpacing.verticalMd,
-        ...match.players.map<Widget>((player) => _PlayerRow(player: player)).toList(),
+        ...match.players
+            .map<Widget>((player) => _PlayerRow(player: player))
+            .toList(),
         // Empty slots
         ...List.generate(
           match.playersNeeded - match.currentPlayers,
@@ -640,6 +710,28 @@ class _PlayerRow extends StatelessWidget {
                         player.user?.fullName ?? 'Jogador',
                         style: AppTypography.labelLarge,
                       ),
+                      if (player.user != null &&
+                          (player.user.reputationSignals > 0 ||
+                              player.user.reputationScore > 0))
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.verified_rounded,
+                                color: AppColors.info,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${player.user.reputationText} • ${player.user.reputationSignals} votos',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       if (player.isOrganizer)
                         Row(
                           children: [
@@ -662,7 +754,8 @@ class _PlayerRow extends StatelessWidget {
                 ),
                 if (player.team > 0)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: player.team == 1
                           ? AppColors.info.withValues(alpha: 0.15)
@@ -672,7 +765,9 @@ class _PlayerRow extends StatelessWidget {
                     child: Text(
                       'Equipa ${player.team == 1 ? "A" : "B"}',
                       style: AppTypography.labelSmall.copyWith(
-                        color: player.team == 1 ? AppColors.info : AppColors.secondary,
+                        color: player.team == 1
+                            ? AppColors.info
+                            : AppColors.secondary,
                       ),
                     ),
                   ),
@@ -745,7 +840,8 @@ class _MatchInfoSection extends StatelessWidget {
               _InfoRow(
                 icon: Icons.calendar_today_rounded,
                 label: 'Data',
-                value: DateFormat('EEEE, d MMMM yyyy', 'pt_PT').format(match.date),
+                value:
+                    DateFormat('EEEE, d MMMM yyyy', 'pt_PT').format(match.date),
               ),
               Divider(color: AppColors.glassBorder, height: 24),
               _InfoRow(
@@ -765,6 +861,14 @@ class _MatchInfoSection extends StatelessWidget {
                   icon: Icons.notes_rounded,
                   label: 'Notas',
                   value: match.notes!,
+                ),
+              ],
+              if (match.score != null) ...[
+                Divider(color: AppColors.glassBorder, height: 24),
+                _InfoRow(
+                  icon: Icons.scoreboard_rounded,
+                  label: 'Resultado',
+                  value: match.score!,
                 ),
               ],
             ],
@@ -821,17 +925,21 @@ class _BottomActionBar extends StatelessWidget {
   final dynamic match;
   final bool isParticipant;
   final bool isOrganizer;
+  final bool feedbackSubmitted;
   final VoidCallback onJoin;
   final VoidCallback onLeave;
-  final VoidCallback onCancel;
+  final VoidCallback onComplete;
+  final VoidCallback onFeedback;
 
   const _BottomActionBar({
     required this.match,
     required this.isParticipant,
     required this.isOrganizer,
+    required this.feedbackSubmitted,
     required this.onJoin,
     required this.onLeave,
-    required this.onCancel,
+    required this.onComplete,
+    required this.onFeedback,
   });
 
   @override
@@ -854,11 +962,40 @@ class _BottomActionBar extends StatelessWidget {
   Widget _buildButton() {
     if (isParticipant) {
       if (isOrganizer) {
+        if (match.score == null) {
+          return PrimaryButton(
+            label: 'Concluir Jogo',
+            icon: Icons.scoreboard_rounded,
+            onPressed: onComplete,
+          );
+        }
+        if (feedbackSubmitted) {
+          return SecondaryButton(
+            label: 'Feedback enviado',
+            icon: Icons.check_circle_rounded,
+            onPressed: null,
+          );
+        }
         return GhostButton(
-          label: 'Cancelar Jogo',
-          icon: Icons.cancel_outlined,
-          color: AppColors.error,
-          onPressed: onCancel,
+          label: 'Feedback',
+          icon: Icons.rate_review_rounded,
+          color: AppColors.primary,
+          onPressed: onFeedback,
+        );
+      }
+      if (match.score != null) {
+        if (feedbackSubmitted) {
+          return SecondaryButton(
+            label: 'Feedback enviado',
+            icon: Icons.check_circle_rounded,
+            onPressed: null,
+          );
+        }
+        return GhostButton(
+          label: 'Feedback',
+          icon: Icons.rate_review_outlined,
+          color: AppColors.primary,
+          onPressed: onFeedback,
         );
       }
       return GhostButton(
@@ -881,6 +1018,290 @@ class _BottomActionBar extends StatelessWidget {
       label: 'Entrar no Jogo',
       icon: Icons.login_rounded,
       onPressed: onJoin,
+    );
+  }
+}
+
+extension _MatchDetailDialogHelpers on _MatchDetailScreenState {
+  Future<void> _showScoreSheet(
+    BuildContext context,
+    MatchesProvider provider,
+    dynamic match,
+  ) async {
+    final scoreController = TextEditingController(
+      text: match.score ?? '',
+    );
+    final notesController = TextEditingController();
+    String winnerOption = 'A';
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Registar Resultado', style: AppTypography.h3),
+                  AppSpacing.verticalMd,
+                  TextField(
+                    controller: scoreController,
+                    decoration: const InputDecoration(hintText: 'Ex: 6-4'),
+                  ),
+                  AppSpacing.verticalMd,
+                  Row(
+                    children: [
+                      Radio<String>(
+                        value: 'A',
+                        groupValue: winnerOption,
+                        onChanged: (value) =>
+                            setState(() => winnerOption = value ?? 'A'),
+                      ),
+                      const Text('Equipa A'),
+                      AppSpacing.horizontalLg,
+                      Radio<String>(
+                        value: 'B',
+                        groupValue: winnerOption,
+                        onChanged: (value) =>
+                            setState(() => winnerOption = value ?? 'B'),
+                      ),
+                      const Text('Equipa B'),
+                    ],
+                  ),
+                  AppSpacing.verticalMd,
+                  TextField(
+                    controller: notesController,
+                    decoration:
+                        const InputDecoration(hintText: 'Notas (opcional)'),
+                    minLines: 2,
+                    maxLines: 3,
+                  ),
+                  AppSpacing.verticalLg,
+                  PrimaryButton(
+                    label: 'Guardar Resultado',
+                    onPressed: () async {
+                      final score = scoreController.text.trim();
+                      final saved = await provider.recordScore(
+                        matchId: match.id,
+                        score: score.isNotEmpty ? score : '0-0',
+                        winnerSide: winnerOption,
+                        notes: notesController.text.trim(),
+                      );
+                      if (!mounted) return;
+                      if (saved) {
+                        await provider.fetchMatchById(match.id);
+                      }
+                      if (context.mounted) Navigator.pop(context);
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showMatchFeedbackSheet(
+      BuildContext context, MatchesProvider provider, dynamic match,
+      {bool isRequired = false}) async {
+    int punctuality = 3;
+    int fairPlay = 3;
+    int social = 3;
+    final notesController = TextEditingController();
+    bool isSubmitting = false;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: !isRequired,
+      enableDrag: !isRequired,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return WillPopScope(
+          onWillPop: () async => !isRequired,
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+            ),
+            child: StatefulBuilder(
+              builder: (sheetInnerContext, setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isRequired
+                          ? 'Avalia o jogo para continuar'
+                          : 'Feedback do Jogo',
+                      style: AppTypography.h3,
+                    ),
+                    AppSpacing.verticalMd,
+                    if (isRequired)
+                      Text(
+                        'E necessario 1 feedback por jogo para terminar o fluxo.',
+                        style: AppTypography.bodySmall
+                            .copyWith(color: AppColors.textMuted),
+                      ),
+                    AppSpacing.verticalMd,
+                    _SimpleRatingBar(
+                      label: 'Pontualidade',
+                      value: punctuality,
+                      onChanged: (value) => setState(() => punctuality = value),
+                    ),
+                    _SimpleRatingBar(
+                      label: 'Fair Play',
+                      value: fairPlay,
+                      onChanged: (value) => setState(() => fairPlay = value),
+                    ),
+                    _SimpleRatingBar(
+                      label: 'Social',
+                      value: social,
+                      onChanged: (value) => setState(() => social = value),
+                    ),
+                    AppSpacing.verticalMd,
+                    TextField(
+                      controller: notesController,
+                      minLines: 2,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                          hintText: 'Comentarios (opcional)'),
+                    ),
+                    AppSpacing.verticalLg,
+                    PrimaryButton(
+                      label: isSubmitting
+                          ? 'A guardar...'
+                          : (isRequired
+                              ? 'Confirmar Feedback'
+                              : 'Enviar Feedback'),
+                      onPressed: isSubmitting
+                          ? null
+                          : () async {
+                              setState(() => isSubmitting = true);
+                              final saved = await provider.submitMatchFeedback(
+                                matchId: match.id,
+                                punctuality: punctuality,
+                                fairPlay: fairPlay,
+                                social: social,
+                                notes: notesController.text.trim(),
+                              );
+
+                              if (!saved) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Erro ao enviar feedback'),
+                                    ),
+                                  );
+                                }
+                                if (!mounted) return;
+                                if (!sheetInnerContext.mounted) return;
+                                setState(() => isSubmitting = false);
+                                return;
+                              }
+
+                              if (!mounted) return;
+                              if (!sheetInnerContext.mounted) return;
+
+                              if (context.mounted) {
+                                Navigator.of(sheetInnerContext).pop();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      saved
+                                          ? (isRequired
+                                              ? 'Obrigado! Feedback registado.'
+                                              : 'Feedback enviado com sucesso.')
+                                          : 'Erro ao enviar feedback',
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              if (!saved) {
+                                setState(() => isSubmitting = false);
+                                return;
+                              }
+
+                              await provider.fetchMatchById(match.id);
+                              setState(() => isSubmitting = false);
+                            },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showFeedbackSheet(
+      BuildContext context, MatchesProvider provider, dynamic match,
+      {bool isRequired = false}) async {
+    await _showMatchFeedbackSheet(
+      context,
+      provider,
+      match,
+      isRequired: isRequired,
+    );
+  }
+}
+
+class _SimpleRatingBar extends StatelessWidget {
+  final String label;
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  const _SimpleRatingBar({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label, style: AppTypography.labelMedium),
+        ),
+        ...List.generate(5, (index) {
+          final selected = value > index;
+          return GestureDetector(
+            onTap: () => onChanged(index + 1),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Icon(
+                selected ? Icons.star_rounded : Icons.star_border_rounded,
+                color: AppColors.warning,
+                size: 24,
+              ),
+            ),
+          );
+        }),
+      ],
     );
   }
 }

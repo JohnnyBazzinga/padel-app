@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../shared/providers/auth_provider.dart';
 import '../../../shared/providers/rankings_provider.dart';
 import '../../../shared/widgets/widgets.dart';
 
@@ -13,22 +14,53 @@ class RankingsScreen extends StatefulWidget {
   State<RankingsScreen> createState() => _RankingsScreenState();
 }
 
-class _RankingsScreenState extends State<RankingsScreen> with SingleTickerProviderStateMixin {
+class _RankingsScreenState extends State<RankingsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  String? _cityFilter;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
+    final auth = context.read<AuthProvider>();
     final provider = context.read<RankingsProvider>();
-    provider.fetchRankings();
+
+    _cityFilter = auth.user?.city;
+    _loadTabData(0, provider: provider, force: true);
     provider.fetchMyRanking();
+    _tabController.addListener(_onTabChanged);
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      _loadTabData(_tabController.index);
+    }
+  }
+
+  void _loadTabData(
+    int index, {
+    RankingsProvider? provider,
+    bool force = false,
+  }) {
+    final rankingProvider = provider ?? context.read<RankingsProvider>();
+    if (!force && rankingProvider.isLoading) return;
+
+    switch (index) {
+      case 1:
+        rankingProvider.fetchEloRankings(city: _cityFilter);
+        break;
+      default:
+        rankingProvider.fetchRankings();
+        break;
+    }
   }
 
   @override
@@ -41,7 +73,6 @@ class _RankingsScreenState extends State<RankingsScreen> with SingleTickerProvid
         bottom: false,
         child: Column(
           children: [
-            // Header
             Padding(
               padding: AppSpacing.screenPadding,
               child: Row(
@@ -58,7 +89,6 @@ class _RankingsScreenState extends State<RankingsScreen> with SingleTickerProvid
             ),
             AppSpacing.verticalLg,
 
-            // My Ranking Card
             if (provider.myRanking != null)
               Padding(
                 padding: AppSpacing.screenPadding,
@@ -68,14 +98,13 @@ class _RankingsScreenState extends State<RankingsScreen> with SingleTickerProvid
                   tier: provider.myRanking!.tier ?? 'BRONZE',
                   wins: provider.myRanking!.matchesWon,
                   losses: provider.myRanking!.matchesPlayed - provider.myRanking!.matchesWon,
+                  reputation: provider.myRanking!.reputationScore,
+                  reputationLabel: provider.myRanking!.reputationLabel,
+                  reputationSignals: provider.myRanking!.reputationSignals,
                 ),
-              )
-                  .animate()
-                  .fadeIn(duration: 400.ms)
-                  .slideY(begin: -0.1, end: 0),
+              ).animate().fadeIn(duration: 320.ms).slideY(begin: -0.06, end: 0),
             AppSpacing.verticalLg,
 
-            // Tab Bar
             Container(
               margin: AppSpacing.screenPadding,
               decoration: BoxDecoration(
@@ -88,33 +117,40 @@ class _RankingsScreenState extends State<RankingsScreen> with SingleTickerProvid
                   color: AppColors.primary,
                   borderRadius: AppDecorations.borderRadiusFull,
                 ),
-                indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: Colors.transparent,
                 labelColor: AppColors.background,
                 unselectedLabelColor: AppColors.textMuted,
-                labelStyle: AppTypography.labelMedium,
                 tabs: const [
                   Tab(text: 'Global'),
                   Tab(text: 'Cidade'),
-                  Tab(text: 'Amigos'),
                 ],
               ),
             ),
             AppSpacing.verticalLg,
-
-            // Rankings List
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _RankingsList(provider: provider),
-                  _RankingsList(provider: provider), // TODO: City rankings
-                  _RankingsList(provider: provider), // TODO: Friends rankings
+                  _RankingsList(
+                    provider: provider,
+                    fallbackTitle: 'Global',
+                  ),
+                  _RankingsList(
+                    provider: provider,
+                    fallbackTitle: 'Cidade',
+                  ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _loadTabData(_tabController.index, provider: provider);
+        },
+        tooltip: 'Atualizar',
+        child: const Icon(Icons.refresh_rounded),
       ),
     );
   }
@@ -124,9 +160,7 @@ class _RankingsScreenState extends State<RankingsScreen> with SingleTickerProvid
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppDecorations.radiusXl),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDecorations.radiusXl)),
       ),
       builder: (context) => _RankingInfoSheet(),
     );
@@ -139,6 +173,9 @@ class _MyRankingCard extends StatelessWidget {
   final String tier;
   final int wins;
   final int losses;
+  final double reputation;
+  final String? reputationLabel;
+  final int reputationSignals;
 
   const _MyRankingCard({
     required this.position,
@@ -146,199 +183,104 @@ class _MyRankingCard extends StatelessWidget {
     required this.tier,
     required this.wins,
     required this.losses,
+    required this.reputation,
+    required this.reputationLabel,
+    required this.reputationSignals,
   });
 
   @override
   Widget build(BuildContext context) {
-    final tierColor = AppColors.getRankColor(tier);
+    final total = wins + losses;
+    final winRate = total == 0 ? 0 : ((wins / total) * 100).toStringAsFixed(0);
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppDecorations.borderRadiusXl,
-        boxShadow: AppDecorations.shadowGlow(AppColors.primary, intensity: 0.3),
+        boxShadow: AppDecorations.shadowGlow(AppColors.primary, intensity: 0.25),
       ),
       child: Column(
         children: [
           Row(
             children: [
-              // Position
               Container(
-                width: 64,
-                height: 64,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                    color: AppColors.surfaceBright,
+                  color: AppColors.surfaceBright,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.glassBorder,
-                    width: 2,
-                  ),
+                  border: Border.all(color: AppColors.glassBorder),
                 ),
                 child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '#$position',
-                        style: AppTypography.h2.copyWith(
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    '#$position',
+                    style: AppTypography.h3,
                   ),
                 ),
               ),
               AppSpacing.horizontalLg,
-
-              // Points & Label
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'A tua posição',
-                      style: AppTypography.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                      ),
-                    ),
+                    Text('A tua posição', style: AppTypography.labelSmall),
                     AppSpacing.verticalXs,
                     Row(
                       children: [
-                        Text(
-                          '$points',
-                          style: AppTypography.statNumberLarge.copyWith(
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'pontos',
-                          style: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
-                          ),
-                        ),
+                        Text('$points', style: AppTypography.h2),
+                        const SizedBox(width: 4),
+                        Text('pontos', style: AppTypography.labelSmall),
                       ],
                     ),
                   ],
                 ),
               ),
-
-              // Tier Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: tierColor,
-                  borderRadius: AppDecorations.borderRadiusFull,
-                  boxShadow: AppDecorations.shadowGlow(tierColor, intensity: 0.5),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _getTierIcon(tier),
-                      size: 16,
-                      color: _getTierTextColor(tier),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _getTierLabel(tier),
-                      style: AppTypography.labelMedium.copyWith(
-                        color: _getTierTextColor(tier),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _TierBadge(tier: tier, position: position),
             ],
           ),
           AppSpacing.verticalLg,
-
-          // Stats Row
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceBright,
-              borderRadius: AppDecorations.borderRadiusMd,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _StatItem(
-                  label: 'Vitórias',
-                  value: '$wins',
-                  color: AppColors.success,
+          Row(
+            children: [
+              Expanded(
+                child: _StatItem(label: 'Vitórias', value: '$wins', color: AppColors.success),
+              ),
+              Expanded(
+                child: _StatItem(label: 'Derrotas', value: '$losses', color: AppColors.error),
+              ),
+              Expanded(
+                child: _StatItem(label: 'Taxa', value: '$winRate%', color: AppColors.warning),
+              ),
+              Expanded(
+                child: _StatItem(
+                  label: 'Reputação',
+                  value: _reputationText(),
+                  color: AppColors.info,
                 ),
-                Container(
-                  width: 1,
-                  height: 30,
-                  color: AppColors.surfaceBright,
-                ),
-                _StatItem(
-                  label: 'Derrotas',
-                  value: '$losses',
-                  color: AppColors.error,
-                ),
-                Container(
-                  width: 1,
-                  height: 30,
-                  color: AppColors.surfaceBright,
-                ),
-                _StatItem(
-                  label: 'Win Rate',
-                  value: wins + losses > 0
-                      ? '${((wins / (wins + losses)) * 100).toStringAsFixed(0)}%'
-                      : '0%',
-                  color: AppColors.warning,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  IconData _getTierIcon(String tier) {
-    switch (tier.toUpperCase()) {
-      case 'DIAMOND':
-        return Icons.diamond_rounded;
-      case 'PLATINUM':
-        return Icons.workspace_premium_rounded;
-      case 'GOLD':
-        return Icons.emoji_events_rounded;
-      case 'SILVER':
-        return Icons.military_tech_rounded;
-      default:
-        return Icons.shield_rounded;
-    }
+  String _reputationText() {
+    if (reputation <= 0) return 'Sem dados';
+    final base = reputation.toStringAsFixed(0);
+    final label = _resolveReputationLabel();
+    if (reputationSignals <= 0) return '$label • $base';
+    return '$label • $base • $reputationSignals votos';
   }
 
-  String _getTierLabel(String tier) {
-    switch (tier.toUpperCase()) {
-      case 'DIAMOND':
-        return 'Diamante';
-      case 'PLATINUM':
-        return 'Platina';
-      case 'GOLD':
-        return 'Ouro';
-      case 'SILVER':
-        return 'Prata';
-      default:
-        return 'Bronze';
+  String _resolveReputationLabel() {
+    if (reputationLabel != null && reputationLabel!.trim().isNotEmpty) {
+      return reputationLabel!;
     }
-  }
-
-  Color _getTierTextColor(String tier) {
-    switch (tier.toUpperCase()) {
-      case 'DIAMOND':
-      case 'PLATINUM':
-      case 'SILVER':
-        return Colors.black87;
-      default:
-        return AppColors.textPrimary;
-    }
+    if (reputation >= 90) return 'Top';
+    if (reputation >= 75) return 'Confiavel';
+    if (reputation >= 55) return 'Regular';
+    return 'Nova Conta';
   }
 }
 
@@ -359,45 +301,83 @@ class _StatItem extends StatelessWidget {
       children: [
         Text(
           value,
-          style: AppTypography.h3.copyWith(color: AppColors.textPrimary),
+          style: AppTypography.h4.copyWith(color: AppColors.textPrimary),
         ),
         AppSpacing.verticalXxs,
-        Text(
-          label,
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
+        Text(label, style: AppTypography.caption.copyWith(color: color)),
       ],
+    );
+  }
+}
+
+class _TierBadge extends StatelessWidget {
+  final String tier;
+  final int position;
+
+  const _TierBadge({
+    required this.tier,
+    required this.position,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AppColors.getRankColor(tier);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: AppDecorations.borderRadiusFull,
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.emoji_events_rounded,
+            size: 16,
+            color: color,
+          ),
+          AppSpacing.horizontalSm,
+          Text(
+            tier,
+            style: AppTypography.labelSmall.copyWith(color: color, fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _RankingsList extends StatelessWidget {
   final RankingsProvider provider;
+  final String fallbackTitle;
 
-  const _RankingsList({required this.provider});
+  const _RankingsList({
+    required this.provider,
+    required this.fallbackTitle,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (provider.isLoading) {
       return ListView(
         padding: AppSpacing.screenPadding,
-        children: List.generate(
-          5,
-          (index) => const Padding(
-            padding: EdgeInsets.only(bottom: 8),
-            child: SkeletonListItem(),
-          ),
-        ),
+        children: const [
+          SkeletonListItem(),
+          AppSpacing.verticalMd,
+          SkeletonListItem(),
+        ],
       );
     }
 
     if (provider.rankings.isEmpty) {
-      return const EmptyState(
-        icon: Icons.leaderboard_rounded,
-        title: 'Sem rankings',
-        message: 'Ainda não há dados de ranking disponíveis.',
+      return ListView(
+        padding: AppSpacing.screenPadding,
+        children: [
+          EmptyState(
+            icon: Icons.leaderboard_outlined,
+            title: 'Sem dados em $fallbackTitle',
+            message: 'Ainda não há ranking disponível.',
+          ),
+        ],
       );
     }
 
@@ -407,8 +387,6 @@ class _RankingsList extends StatelessWidget {
       itemBuilder: (context, index) {
         final ranking = provider.rankings[index];
         final position = ranking.position ?? index + 1;
-        final isTop3 = position <= 3;
-
         return _RankingRow(
           position: position,
           name: ranking.userName,
@@ -416,10 +394,13 @@ class _RankingsList extends StatelessWidget {
           points: ranking.points,
           wins: ranking.matchesWon,
           losses: ranking.matchesPlayed - ranking.matchesWon,
-          isTop3: isTop3,
+          reputation: ranking.reputationScore,
+          reputationLabel: ranking.reputationLabel,
+          reputationSignals: ranking.reputationSignals,
+          isTop3: position <= 3,
         )
             .animate()
-            .fadeIn(duration: 300.ms, delay: (index * 30).ms)
+            .fadeIn(duration: 220.ms, delay: (index * 20).ms)
             .slideX(begin: 0.05, end: 0);
       },
     );
@@ -433,6 +414,9 @@ class _RankingRow extends StatelessWidget {
   final int points;
   final int wins;
   final int losses;
+  final double reputation;
+  final String? reputationLabel;
+  final int reputationSignals;
   final bool isTop3;
 
   const _RankingRow({
@@ -442,6 +426,9 @@ class _RankingRow extends StatelessWidget {
     required this.points,
     required this.wins,
     required this.losses,
+    required this.reputation,
+    required this.reputationLabel,
+    required this.reputationSignals,
     this.isTop3 = false,
   });
 
@@ -454,9 +441,10 @@ class _RankingRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppDecorations.borderRadiusMd,
-        border: isTop3
-            ? Border.all(color: positionColor.withValues(alpha: 0.5), width: 1.5)
-            : Border.all(color: AppColors.glassBorder),
+        border: Border.all(
+          color: isTop3 ? positionColor.withValues(alpha: 0.5) : AppColors.glassBorder,
+          width: isTop3 ? 1.2 : 1,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -467,7 +455,6 @@ class _RankingRow extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                // Position
                 Container(
                   width: 40,
                   height: 40,
@@ -477,92 +464,52 @@ class _RankingRow extends StatelessWidget {
                   ),
                   child: Center(
                     child: isTop3
-                        ? Icon(
-                            Icons.emoji_events_rounded,
-                            color: position == 1
-                                ? Colors.amber.shade900
-                                : position == 2
-                                    ? Colors.grey.shade800
-                                    : Colors.brown.shade800,
-                            size: 20,
-                          )
+                        ? const Icon(Icons.emoji_events_rounded, color: AppColors.background, size: 20)
                         : Text(
                             '$position',
-                            style: AppTypography.labelLarge.copyWith(
-                              color: AppColors.textPrimary,
-                            ),
+                            style: AppTypography.labelLarge,
                           ),
                   ),
                 ),
                 AppSpacing.horizontalMd,
-
-                // Avatar
                 UserAvatar(
                   imageUrl: avatarUrl,
                   name: name,
                   size: 40,
                 ),
                 AppSpacing.horizontalMd,
-
-                // Name & Record
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        name,
-                        style: AppTypography.labelLarge,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      Text(name, style: AppTypography.labelLarge),
                       AppSpacing.verticalXxs,
                       Row(
                         children: [
+                          Text('$wins', style: AppTypography.labelSmall.copyWith(color: AppColors.success)),
+                          Text('V ', style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
+                          Text('$losses', style: AppTypography.labelSmall.copyWith(color: AppColors.error)),
+                          Text('D', style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
+                          AppSpacing.horizontalMd,
                           Text(
-                            '$wins',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.success,
-                            ),
-                          ),
-                          Text(
-                            'V ',
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.textMuted,
-                            ),
-                          ),
-                          Text(
-                            '$losses',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.error,
-                            ),
-                          ),
-                          Text(
-                            'D',
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.textMuted,
-                            ),
+                            'Rep ${_resolveReputationLabel()} • ${reputation.toStringAsFixed(0)}${reputationSignals > 0 ? " • $reputationSignals votos" : ""}',
+                            style: AppTypography.labelSmall.copyWith(color: AppColors.info),
                           ),
                         ],
                       ),
                     ],
                   ),
                 ),
-
-                // Points
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       '$points',
-                      style: AppTypography.h4.copyWith(
-                        color: AppColors.primary,
-                      ),
+                      style: AppTypography.h4.copyWith(color: AppColors.primary),
                     ),
                     Text(
                       'pts',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.textMuted,
-                      ),
+                      style: AppTypography.caption.copyWith(color: AppColors.textMuted),
                     ),
                   ],
                 ),
@@ -575,16 +522,20 @@ class _RankingRow extends StatelessWidget {
   }
 
   Color _getPositionColor() {
-    switch (position) {
-      case 1:
-        return AppColors.gold;
-      case 2:
-        return AppColors.silver;
-      case 3:
-        return AppColors.bronze;
-      default:
-        return AppColors.surfaceBright;
+    if (position == 1) return AppColors.gold;
+    if (position == 2) return AppColors.silver;
+    if (position == 3) return AppColors.bronze;
+    return AppColors.surfaceBright;
+  }
+
+  String _resolveReputationLabel() {
+    if (reputationLabel != null && reputationLabel!.trim().isNotEmpty) {
+      return reputationLabel!;
     }
+    if (reputation >= 90) return 'Top';
+    if (reputation >= 75) return 'Confiavel';
+    if (reputation >= 55) return 'Regular';
+    return 'Nova Conta';
   }
 }
 
@@ -597,7 +548,6 @@ class _RankingInfoSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Drag handle
           Center(
             child: Container(
               width: 40,
@@ -609,30 +559,28 @@ class _RankingInfoSheet extends StatelessWidget {
             ),
           ),
           AppSpacing.verticalXl,
-
-          Text('Como funciona o Ranking', style: AppTypography.h2),
+          Text('Como funciona', style: AppTypography.h2),
           AppSpacing.verticalLg,
-
           _InfoRow(
             icon: Icons.emoji_events_rounded,
-            title: 'Ganhar Pontos',
-            description: 'Ganha pontos ao vencer jogos. Quanto maior o nível do adversário, mais pontos ganhas.',
+            title: 'Ganhar pontos',
+            description: 'Pontos acumulados por vitórias e nível dos adversários.',
           ),
           AppSpacing.verticalMd,
           _InfoRow(
             icon: Icons.trending_up_rounded,
-            title: 'Subir de Tier',
-            description: 'Ao acumulares pontos, sobes de Bronze até Diamante.',
+            title: 'Reputação',
+            description:
+                'O perfil social adiciona reputação calculada por punctuality, fair play e social.',
           ),
           AppSpacing.verticalMd,
           _InfoRow(
             icon: Icons.calendar_month_rounded,
-            title: 'Reset Sazonal',
-            description: 'O ranking é resetado a cada 3 meses. Mantém a consistência!',
+            title: 'ELO',
+            description:
+                'A opção ELO usa score de confiança da tua performance para atualização de ranking.',
           ),
-
           AppSpacing.verticalXxl,
-
           SecondaryButton(
             label: 'Entendi',
             onPressed: () => Navigator.pop(context),
@@ -665,7 +613,7 @@ class _InfoRow extends StatelessWidget {
             color: AppColors.primaryMuted,
             borderRadius: AppDecorations.borderRadiusSm,
           ),
-          child: Icon(icon, color: AppColors.primary, size: 20),
+          child: Icon(icon, size: 18, color: AppColors.primary),
         ),
         AppSpacing.horizontalMd,
         Expanded(
@@ -676,9 +624,7 @@ class _InfoRow extends StatelessWidget {
               AppSpacing.verticalXxs,
               Text(
                 description,
-                style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.textMuted,
-                ),
+                style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
               ),
             ],
           ),

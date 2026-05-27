@@ -1,25 +1,131 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../shared/models/social_post.dart';
+import '../../../shared/models/user_model.dart';
 import '../../../shared/providers/auth_provider.dart';
-import '../../../shared/providers/friends_provider.dart';
-import '../../../shared/providers/notifications_provider.dart';
+import '../../../shared/providers/profile_provider.dart';
 import '../../../shared/widgets/widgets.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  final String? profileUserId;
+  final PostAuthor? previewAuthor;
+
+  const ProfileScreen({
+    super.key,
+    this.profileUserId,
+    this.previewAuthor,
+  });
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String? _lastRequestedProfileId;
+
+  @override
+  void initState() {
+    super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadPublicProfileIfNeeded();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ProfileScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.profileUserId != widget.profileUserId) {
+      _loadPublicProfileIfNeeded();
+    }
+  }
+
+  void _loadPublicProfileIfNeeded() {
+    final profileProvider = context.read<ProfileProvider>();
+    final currentUser = context.read<AuthProvider>().user;
+    final targetId = _normalizeProfileId();
+
+    final isOwnProfile =
+        targetId == null || (currentUser != null && currentUser.id == targetId);
+    if (isOwnProfile || targetId == null) return;
+    if (_lastRequestedProfileId == targetId &&
+        profileProvider.isLoading(targetId)) {
+      return;
+    }
+
+    _lastRequestedProfileId = targetId;
+    if (profileProvider.getProfile(targetId) == null &&
+        !profileProvider.isLoading(targetId)) {
+      profileProvider.loadProfile(
+        userId: targetId,
+        fallbackAuthor: widget.previewAuthor,
+      );
+    }
+  }
+
+  Future<void> _refreshProfile() async {
+    final targetId = _normalizeProfileId();
+    if (targetId == null) {
+      await context.read<AuthProvider>().refreshUser();
+      return;
+    }
+
+    await context.read<ProfileProvider>().loadProfile(
+          userId: targetId,
+          fallbackAuthor: widget.previewAuthor,
+          force: true,
+        );
+  }
+
+  String? _normalizeProfileId() {
+    if (widget.profileUserId == null) return null;
+    final id = widget.profileUserId!.trim();
+    return id.isEmpty ? null : id;
+  }
+
+  User _buildFallbackUser(String id, User? currentUser) {
+    if (widget.previewAuthor != null) {
+      return _userFromAuthor(widget.previewAuthor!, id);
+    }
+
+    if (widget.profileUserId == null && currentUser != null) {
+      return currentUser;
+    }
+
+    return User(
+      id: id,
+      email: '',
+      firstName: 'Utilizador',
+      skillLevel: 'BEGINNER',
+      avatarUrl: null,
+      city: null,
+      availabilityStatus: null,
+      reputationScore: 0,
+      reputationSignals: 0,
+      matchesPlayed: 0,
+      matchesWon: 0,
+      totalPoints: 0,
+      roles: const [],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final friends = context.watch<FriendsProvider>();
-    final notifications = context.watch<NotificationsProvider>();
-    final user = auth.user;
+    final profileProvider = context.watch<ProfileProvider>();
+    final currentUser = auth.user;
 
-    if (user == null) {
+    final targetId = _normalizeProfileId();
+    final isOwnProfile =
+        targetId == null || (currentUser != null && targetId == currentUser.id);
+    final hasPublicProfile = targetId != null;
+
+    if (targetId == null && currentUser == null) {
       return Scaffold(
         backgroundColor: AppColors.background,
         body: Center(
@@ -28,226 +134,303 @@ class ProfileScreen extends StatelessWidget {
       );
     }
 
+    if (!isOwnProfile && hasPublicProfile) {
+      _loadPublicProfileIfNeeded();
+    }
+
+    final user = isOwnProfile
+        ? currentUser
+        : profileProvider.getProfile(targetId!) ??
+            _buildFallbackUser(targetId, currentUser);
+
+    if (user == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: Text(
+            'Não foi possível carregar o perfil.',
+            style: AppTypography.bodyMedium,
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 120),
-          child: Column(
-            children: [
-              // Header with edit button
-              Padding(
-                padding: AppSpacing.screenPadding,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Perfil', style: AppTypography.h1),
-                    AppIconButton(
-                      icon: Icons.edit_outlined,
-                      variant: AppIconButtonVariant.glass,
-                      onPressed: () => context.push('/edit-profile'),
-                    ),
-                  ],
-                ),
-              ),
-              AppSpacing.verticalXl,
-
-              // Profile Card
-              _ProfileHeader(user: user)
-                  .animate()
-                  .fadeIn(duration: 400.ms)
-                  .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1)),
-
-              AppSpacing.verticalXxl,
-
-              // Stats
-              Padding(
-                padding: AppSpacing.screenPadding,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: StatCard(
-                        value: '${user.matchesPlayed}',
-                        label: 'Jogos',
-                        icon: Icons.sports_tennis_rounded,
-                        accentColor: AppColors.primary,
+        child: RefreshIndicator(
+          onRefresh: _refreshProfile,
+          color: AppColors.primary,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 120),
+            child: Column(
+              children: [
+                Padding(
+                  padding: AppSpacing.screenPadding,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isOwnProfile ? 'Perfil' : 'Perfil do jogador',
+                        style: AppTypography.h1,
                       ),
-                    ),
-                    AppSpacing.horizontalMd,
-                    Expanded(
-                      child: StatCard(
-                        value: '${user.matchesWon}',
-                        label: 'Vitórias',
-                        icon: Icons.emoji_events_rounded,
-                        accentColor: AppColors.accent,
-                      ),
-                    ),
-                    AppSpacing.horizontalMd,
-                    Expanded(
-                      child: StatCard(
-                        value: '${user.winRate.toStringAsFixed(0)}%',
-                        label: 'Win Rate',
-                        icon: Icons.trending_up_rounded,
-                        accentColor: AppColors.success,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-                  .animate()
-                  .fadeIn(duration: 400.ms, delay: 100.ms)
-                  .slideY(begin: 0.1, end: 0),
-
-              AppSpacing.verticalXxl,
-
-              // Progress to next level
-              Padding(
-                padding: AppSpacing.screenPadding,
-                child: _LevelProgress(
-                  currentLevel: user.skillLevel,
-                  progress: 0.7, // TODO: Calculate actual progress
-                  pointsToNext: 8,
-                ),
-              )
-                  .animate()
-                  .fadeIn(duration: 400.ms, delay: 150.ms),
-
-              AppSpacing.verticalXxl,
-
-              // Menu Items
-              Padding(
-                padding: AppSpacing.screenPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'CONTA',
-                      style: AppTypography.overline.copyWith(
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                    AppSpacing.verticalMd,
-                    _MenuCard(
-                      items: [
-                        _MenuItem(
-                          icon: Icons.calendar_today_rounded,
-                          label: 'Minhas Reservas',
-                          onTap: () => context.push('/my-bookings'),
+                      if (isOwnProfile)
+                        AppIconButton(
+                          icon: Icons.edit_outlined,
+                          variant: AppIconButtonVariant.glass,
+                          onPressed: () => context.push('/edit-profile'),
                         ),
-                        if (auth.canInviteOrganizer)
-                          _MenuItem(
-                            icon: Icons.admin_panel_settings_rounded,
-                            label: 'Convidar organizador',
-                            onTap: () => context.push('/admin/invite-organizer'),
+                    ],
+                  ),
+                ),
+                if (!isOwnProfile &&
+                    targetId != null &&
+                    profileProvider.isLoading(targetId))
+                  Padding(
+                    padding: AppSpacing.screenPadding,
+                    child:
+                        const LinearProgressIndicator(color: AppColors.primary),
+                  ),
+                if (!isOwnProfile &&
+                    profileProvider.error(targetId) != null &&
+                    _shouldShowProfileFallback(user))
+                  Padding(
+                    padding: AppSpacing.screenPadding,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceBright,
+                        borderRadius: AppDecorations.borderRadiusMd,
+                        border: Border.all(color: AppColors.glassBorder),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Perfil em modo parcial. Alguns dados podem não aparecer em todos os campos.',
+                              style: AppTypography.bodySmall.copyWith(
+                                color: AppColors.textMuted,
+                              ),
+                            ),
                           ),
-                        _MenuItem(
-                          icon: Icons.people_rounded,
-                          label: 'Amigos',
-                          badge: friends.pendingCount > 0 ? friends.pendingCount.toString() : null,
-                          onTap: () => context.push('/friends'),
-                        ),
-                        _MenuItem(
-                          icon: Icons.leaderboard_rounded,
-                          label: 'Meu Ranking',
-                          onTap: () => context.push('/rankings'),
-                        ),
-                        _MenuItem(
-                          icon: Icons.history_rounded,
-                          label: 'Histórico de Jogos',
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              )
-                  .animate()
-                  .fadeIn(duration: 400.ms, delay: 200.ms),
-
-              AppSpacing.verticalXl,
-
-              Padding(
-                padding: AppSpacing.screenPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'PREFERÊNCIAS',
-                      style: AppTypography.overline.copyWith(
-                        color: AppColors.textMuted,
+                          IconButton(
+                            icon: Icon(Icons.refresh_rounded,
+                                color: AppColors.primary),
+                            onPressed: () => _refreshProfile(),
+                          ),
+                        ],
                       ),
                     ),
-                    AppSpacing.verticalMd,
-                    _MenuCard(
-                      items: [
-                        _MenuItem(
-                          icon: Icons.notifications_outlined,
-                          label: 'Notificações',
-                          onTap: () {},
+                  ),
+                AppSpacing.verticalXl,
+                _ProfileHeader(user: user)
+                    .animate()
+                    .fadeIn(duration: 400.ms)
+                    .scale(
+                        begin: const Offset(0.95, 0.95),
+                        end: const Offset(1, 1)),
+                AppSpacing.verticalXxl,
+                Padding(
+                  padding: AppSpacing.screenPadding,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: StatCard(
+                          value: '${user.matchesPlayed}',
+                          label: 'Jogos',
+                          icon: Icons.sports_tennis_rounded,
+                          accentColor: AppColors.primary,
                         ),
-                        _MenuItem(
-                          icon: Icons.settings_outlined,
-                          label: 'Definições',
-                          onTap: () {},
+                      ),
+                      AppSpacing.horizontalMd,
+                      Expanded(
+                        child: StatCard(
+                          value: '${user.matchesWon}',
+                          label: 'Vitórias',
+                          icon: Icons.emoji_events_rounded,
+                          accentColor: AppColors.accent,
                         ),
-                        _MenuItem(
-                          icon: Icons.help_outline_rounded,
-                          label: 'Ajuda & Suporte',
-                          onTap: () {},
+                      ),
+                      AppSpacing.horizontalMd,
+                      Expanded(
+                        child: StatCard(
+                          value: '${user.winRate.toStringAsFixed(0)}%',
+                          label: 'Win Rate',
+                          icon: Icons.trending_up_rounded,
+                          accentColor: AppColors.success,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                    .animate()
+                    .fadeIn(duration: 400.ms, delay: 100.ms)
+                    .slideY(begin: 0.1, end: 0),
+                AppSpacing.verticalXxl,
+                if (isOwnProfile) ...[
+                  Padding(
+                    padding: AppSpacing.screenPadding,
+                    child: _LevelProgress(
+                      currentLevel: user.skillLevel,
+                      progress: 0.7, // TODO: Calculate actual progress
+                      pointsToNext: 8,
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 150.ms),
+                  AppSpacing.verticalXxl,
+                  Padding(
+                    padding: AppSpacing.screenPadding,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'CONTA',
+                          style: AppTypography.overline.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                        AppSpacing.verticalMd,
+                        _MenuCard(
+                          items: [
+                            _MenuItem(
+                              icon: Icons.calendar_today_rounded,
+                              label: 'Minhas Reservas',
+                              onTap: () => context.push('/my-bookings'),
+                            ),
+                            _MenuItem(
+                              icon: Icons.leaderboard_rounded,
+                              label: 'Meu Ranking',
+                              onTap: () => context.push('/rankings'),
+                            ),
+                            _MenuItem(
+                              icon: Icons.history_rounded,
+                              label: 'Histórico de Jogos',
+                              onTap: () => {},
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              )
-                  .animate()
-                  .fadeIn(duration: 400.ms, delay: 250.ms),
-
-              AppSpacing.verticalXl,
-
-              // Logout
-              Padding(
-                padding: AppSpacing.screenPadding,
-                child: _LogoutButton(
-                  onTap: () async {
-                    await auth.logout();
-                    if (context.mounted) {
-                      context.go('/login');
-                    }
-                  },
-                ),
-              )
-                  .animate()
-                  .fadeIn(duration: 400.ms, delay: 300.ms),
-            ],
+                  ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
+                  AppSpacing.verticalXl,
+                  Padding(
+                    padding: AppSpacing.screenPadding,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'PREFERÊNCIAS',
+                          style: AppTypography.overline.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                        AppSpacing.verticalMd,
+                        _MenuCard(
+                          items: [
+                            _MenuItem(
+                              icon: Icons.notifications_outlined,
+                              label: 'Notificações',
+                              onTap: () => context.push('/notifications'),
+                            ),
+                            _MenuItem(
+                              icon: Icons.settings_outlined,
+                              label: 'Definições',
+                              onTap: () => {},
+                            ),
+                            _MenuItem(
+                              icon: Icons.help_outline_rounded,
+                              label: 'Ajuda & Suporte',
+                              onTap: () => {},
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 250.ms),
+                  AppSpacing.verticalXl,
+                  Padding(
+                    padding: AppSpacing.screenPadding,
+                    child: _LogoutButton(
+                      onTap: () async {
+                        await auth.logout();
+                        if (context.mounted) {
+                          context.go('/login');
+                        }
+                      },
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 300.ms),
+                ],
+                if (!isOwnProfile)
+                  Padding(
+                    padding: AppSpacing.screenPadding,
+                    child: Text(
+                      'Perfil público — em modo consulta. As ações de edição e conta são para o teu próprio perfil.',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  bool _shouldShowProfileFallback(User user) {
+    return user.email.isEmpty &&
+        user.matchesPlayed == 0 &&
+        user.matchesWon == 0;
+  }
+
+  User _userFromAuthor(PostAuthor author, String fallbackId) {
+    final name = author.name?.trim() ?? '';
+    final parts =
+        name.split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();
+
+    return User(
+      id: author.id.isNotEmpty ? author.id : fallbackId,
+      email: '',
+      firstName: parts.isNotEmpty ? parts.first : null,
+      lastName: parts.length > 1 ? parts.sublist(1).join(' ') : null,
+      avatarUrl: author.avatarUrl,
+      city: author.city,
+      skillLevel: author.skillLevel ?? 'BEGINNER',
+      reputationScore: author.reputation ?? 0,
+      availabilityStatus: author.availabilityStatus,
+      reputationSignals: 0,
+      matchesPlayed: 0,
+      matchesWon: 0,
+      totalPoints: 0,
+      roles: const [],
+    );
+  }
 }
 
 class _ProfileHeader extends StatelessWidget {
-  final dynamic user;
+  final User user;
 
   const _ProfileHeader({required this.user});
 
   @override
   Widget build(BuildContext context) {
+    final availabilityLabel = availabilityStatusLabel(user.availabilityStatus);
     return Padding(
       padding: AppSpacing.screenPadding,
       child: GradientCard(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            // Avatar with gradient border
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: AppColors.primary,
                 shape: BoxShape.circle,
-                boxShadow: AppDecorations.shadowGlow(AppColors.primary, intensity: 0.3),
+                boxShadow: AppDecorations.shadowGlow(AppColors.primary,
+                    intensity: 0.3),
               ),
               child: UserAvatar(
                 imageUrl: user.avatarUrl,
@@ -259,18 +442,13 @@ class _ProfileHeader extends StatelessWidget {
               ),
             ),
             AppSpacing.verticalLg,
-
-            // Name
             Text(
               user.fullName.isNotEmpty ? user.fullName : user.email,
               style: AppTypography.h2,
               textAlign: TextAlign.center,
             ),
             AppSpacing.verticalSm,
-
-            // Level badge
             LevelBadge(level: _getDisplayLevel(user.skillLevel)),
-
             if (user.city != null) ...[
               AppSpacing.verticalMd,
               Row(
@@ -291,7 +469,27 @@ class _ProfileHeader extends StatelessWidget {
                 ],
               ),
             ],
-
+            if (availabilityLabel != null) ...[
+              AppSpacing.verticalMd,
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: _availabilityStatusColor(user.availabilityStatus)
+                      .withOpacity(0.12),
+                  borderRadius: AppDecorations.borderRadiusFull,
+                  border: Border.all(
+                    color: _availabilityStatusColor(user.availabilityStatus),
+                  ),
+                ),
+                child: Text(
+                  'Estado: $availabilityLabel',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: _availabilityStatusColor(user.availabilityStatus),
+                  ),
+                ),
+              ),
+            ],
             if (user.roles.isNotEmpty) ...[
               AppSpacing.verticalMd,
               Wrap(
@@ -300,7 +498,8 @@ class _ProfileHeader extends StatelessWidget {
                 children: user.roles
                     .map(
                       (role) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withOpacity(0.12),
                           borderRadius: AppDecorations.borderRadiusFull,
@@ -314,6 +513,32 @@ class _ProfileHeader extends StatelessWidget {
                       ),
                     )
                     .toList(),
+              ),
+            ],
+            if (user.reputationSignals > 0 || user.reputationScore > 0) ...[
+              AppSpacing.verticalMd,
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceBright,
+                  borderRadius: AppDecorations.borderRadiusFull,
+                  border: Border.all(color: AppColors.glassBorder),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.verified_rounded,
+                        color: AppColors.info, size: 16),
+                    AppSpacing.horizontalSm,
+                    Text(
+                      '${user.reputationText} • ${user.reputationSignals} votos',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],
@@ -335,6 +560,22 @@ class _ProfileHeader extends StatelessWidget {
       default:
         return level;
     }
+  }
+}
+
+Color _availabilityStatusColor(String? status) {
+  final canonical = canonicalAvailabilityStatus(status);
+  switch (canonical) {
+    case 'a_jogar':
+      return AppColors.success;
+    case 'a_procurar_parceiro':
+      return AppColors.warning;
+    case 'offline':
+      return AppColors.textMuted;
+    case 'busy':
+      return AppColors.error;
+    default:
+      return AppColors.primary;
   }
 }
 
@@ -363,7 +604,7 @@ class _LevelProgress extends StatelessWidget {
                 style: AppTypography.h4,
               ),
               Text(
-                '$pointsToNext vitórias para o próximo n��vel',
+                '$pointsToNext vitórias para o próximo nível',
                 style: AppTypography.bodySmall.copyWith(
                   color: AppColors.textMuted,
                 ),
@@ -371,7 +612,6 @@ class _LevelProgress extends StatelessWidget {
             ],
           ),
           AppSpacing.verticalLg,
-          // Progress bar
           ClipRRect(
             borderRadius: AppDecorations.borderRadiusFull,
             child: LinearProgressIndicator(
@@ -512,7 +752,8 @@ class _MenuItem extends StatelessWidget {
               ),
               if (badge != null) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: AppColors.accent,
                     borderRadius: AppDecorations.borderRadiusFull,
